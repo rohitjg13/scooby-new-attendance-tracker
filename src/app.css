@@ -1,0 +1,403 @@
+/* Design language — "Paper"
+   Warm paper ground, ink-dark text, and a single violet accent reserved for
+   things you can act on. Soft radii, generous padding, shadow instead of
+   contrast for depth. One grotesque throughout; mono for every number, code
+   and time, so figures line up wherever they appear. */
+
+:root {
+	color-scheme: light;
+
+	/* Warm newsprint, not white. */
+	--bg: #fffdf6;
+	--bg-card: #ffffff;
+	--bg-hover: #f5f1e6;
+	--bg-input: #ffffff;
+	--bg-sunken: #f4f0e4;
+
+	--text: #14110d;
+	--text-secondary: #4c463c;
+	--text-muted: #6b6456;
+
+	--border: #e3ded0;
+	--border-hover: #cbc4b0;
+	--border-strong: #9d9581;
+
+	/* A signal colour — the one that means "do something here". */
+	--accent: #e12d0b;
+	--accent-hover: #bd2308;
+	--accent-ink: #fffdf6;
+	--accent-dim: rgba(225, 45, 11, 0.12);
+
+	--ok: #0a6f45;
+	--warn: #8a5300;
+	--bad: #c62317;
+	--conflict: #c62317;
+
+	--ring: rgba(225, 45, 11, 0.6);
+	--shadow: 0 1px 2px rgba(20, 17, 13, 0.05), 0 10px 28px -14px rgba(20, 17, 13, 0.22);
+	--shadow-lift: 0 2px 4px rgba(20, 17, 13, 0.06), 0 18px 40px -18px rgba(20, 17, 13, 0.28);
+
+	/* Per-thing colour: hue is identity, the theme supplies lightness and
+	   chroma. Saturated and solid — these are blocks of colour, not washes. */
+	/* 0.49, not higher: at 0.56 the teal and green hues dropped under 4.5:1
+	   both as small text and under white ink, measured across all eight. */
+	--tone-l: 0.49;
+	--tone-c: 0.19;
+	--tone-on: #fffdf6;
+	--tone-soft-l: 0.94;
+	--tone-soft-c: 0.05;
+
+	--hue-red: 27;
+	--hue-orange: 55;
+	--hue-yellow: 88;
+	--hue-green: 145;
+	--hue-teal: 195;
+	--hue-blue: 250;
+	--hue-purple: 300;
+	--hue-pink: 355;
+
+	/* Academic-calendar categories: one hue each, defined per theme because
+	   they are used as text as well as fill. */
+	--cat-exam: #5344a0;
+	--cat-deadline: #8a6d1f;
+	--cat-holiday: #a34449;
+	--cat-break: #3d7c62;
+	--cat-event: #4b5f80;
+	--cat-restricted: #86527f;
+
+	/* Lightness the planner builds its per-department hues at. */
+	--tint-l: 0.55;
+
+	--font: 'Libre Franklin', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--font-display: 'Libre Franklin', -apple-system, 'Segoe UI', sans-serif;
+	--font-mono: 'IBM Plex Mono', 'SF Mono', ui-monospace, monospace;
+
+	--radius: 7px;
+	--radius-sm: 4px;
+
+}
+
+/* Dark theme. Same roles, same accent hue lifted so it still reads as the
+   one interactive colour. Applied when the reader picked dark, or when they
+   picked nothing and their system is dark. */
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		color-scheme: dark;
+
+		--bg: #0d0c09;
+		--bg-card: #191712;
+		--bg-hover: #25221b;
+		--bg-input: #191712;
+		--bg-sunken: #131110;
+
+		--text: #faf6ec;
+		--text-secondary: #c2baa9;
+		--text-muted: #968d7c;
+
+		--border: #37322a;
+		--border-hover: #4e473c;
+		--border-strong: #6d6455;
+
+		--accent: #ff5a35;
+		--accent-hover: #ff7452;
+		--accent-ink: #150c08;
+		--accent-dim: rgba(255, 90, 53, 0.2);
+
+		--ok: #5bd196;
+		--warn: #e8b155;
+		--bad: #ff8073;
+		--conflict: #ff8073;
+
+		--ring: rgba(255, 90, 53, 0.65);
+		--shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+		--shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.45), 0 18px 40px -18px rgba(0, 0, 0, 0.8);
+
+		--tone-l: 0.72;
+		--tone-c: 0.17;
+		--tone-on: #150f08;
+		--tone-soft-l: 0.26;
+		--tone-soft-c: 0.05;
+
+		--cat-exam: #a99bea;
+		--cat-deadline: #d7b167;
+		--cat-holiday: #e3898c;
+		--cat-break: #7fc7a5;
+		--cat-event: #8ea6c9;
+		--cat-restricted: #cf9dc7;
+
+		--tint-l: 0.75;
+	}
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+
+	--bg: #0d0c09;
+	--bg-card: #191712;
+	--bg-hover: #25221b;
+	--bg-input: #191712;
+	--bg-sunken: #131110;
+
+	--text: #faf6ec;
+	--text-secondary: #c2baa9;
+	--text-muted: #968d7c;
+
+	--border: #37322a;
+	--border-hover: #4e473c;
+	--border-strong: #6d6455;
+
+	--accent: #ff5a35;
+	--accent-hover: #ff7452;
+	--accent-ink: #150c08;
+	--accent-dim: rgba(255, 90, 53, 0.2);
+
+	--ok: #5bd196;
+	--warn: #e8b155;
+	--bad: #ff8073;
+	--conflict: #ff8073;
+
+	--ring: rgba(255, 90, 53, 0.65);
+	--shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+	--shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.45), 0 18px 40px -18px rgba(0, 0, 0, 0.8);
+
+	--tone-l: 0.72;
+	--tone-c: 0.17;
+	--tone-on: #150f08;
+	--tone-soft-l: 0.26;
+	--tone-soft-c: 0.05;
+
+	--cat-exam: #a99bea;
+	--cat-deadline: #d7b167;
+	--cat-holiday: #e3898c;
+	--cat-break: #7fc7a5;
+	--cat-event: #8ea6c9;
+	--cat-restricted: #cf9dc7;
+
+	--tint-l: 0.75;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html {
+	font-size: 15px;
+	-webkit-font-smoothing: antialiased;
+}
+
+body {
+	font-family: var(--font);
+	background: var(--bg);
+	color: var(--text);
+	line-height: 1.5;
+	min-height: 100vh;
+}
+
+/* One focus ring for the whole site instead of per-page guesswork */
+:focus-visible {
+	outline: 2px solid var(--ring);
+	outline-offset: 2px;
+	border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+::selection {
+	background: var(--accent-dim);
+	color: var(--text);
+}
+
+/* Typography */
+h1,
+h2 {
+	font-family: var(--font-display);
+	font-weight: 700;
+	letter-spacing: -0.03em;
+	line-height: 1.05;
+}
+
+h3 {
+	font-weight: 500;
+	font-size: 0.95rem;
+	letter-spacing: -0.01em;
+}
+
+h1 {
+	font-size: 1.75rem;
+}
+
+h2 {
+	font-size: 1.3rem;
+}
+
+/* A thing that owns a hue sets --h; these three read it. */
+/* A thing that owns a hue sets --h; these read it. */
+.tone-solid {
+	background: oklch(var(--tone-l) var(--tone-c) var(--h));
+	color: var(--tone-on);
+}
+
+.tone-soft {
+	background: oklch(var(--tone-soft-l) var(--tone-soft-c) var(--h));
+}
+
+.tone-ink {
+	color: oklch(var(--tone-l) var(--tone-c) var(--h));
+}
+
+/* Micro-label: the mono uppercase caption used all over the app */
+.label {
+	font-family: var(--font-mono);
+	font-size: 0.65rem;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+/* Input */
+.input {
+	width: 100%;
+	padding: 0.75rem 1rem;
+	background: var(--bg-input);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--text);
+	font-size: 0.9rem;
+	transition: border-color 0.15s;
+}
+
+.input:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.input::placeholder {
+	color: var(--text-muted);
+}
+
+@media screen and (max-width: 768px) {
+
+	input[type="text"],
+	input[type="number"],
+	input[type="email"],
+	input[type="password"],
+	input[type="search"],
+	select,
+	textarea {
+		font-size: 16px !important;
+	}
+}
+
+/* Button */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 0.6rem 1rem;
+	font-size: 0.85rem;
+	font-weight: 500;
+	border-radius: var(--radius);
+	border: 1px solid var(--border);
+	background: var(--bg);
+	color: var(--text);
+	cursor: pointer;
+	transition: all 0.15s;
+}
+
+.btn:hover {
+	background: var(--bg-hover);
+	border-color: var(--border-hover);
+}
+
+.btn:focus-visible {
+	border-color: var(--accent);
+}
+
+.btn:active {
+	transform: translateY(1px);
+}
+
+.btn:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.btn-primary {
+	background: var(--accent);
+	color: var(--accent-ink);
+	border-color: var(--accent);
+	font-weight: 600;
+}
+
+.btn-primary:hover {
+	background: var(--accent-hover);
+	border-color: var(--accent-hover);
+}
+
+.btn-sm {
+	padding: 0.35rem 0.6rem;
+	font-size: 0.75rem;
+}
+
+.btn-danger {
+	color: var(--text-secondary);
+}
+
+.btn-danger:hover {
+	color: var(--text);
+}
+
+/* Badge */
+.badge {
+	display: inline-flex;
+	padding: 0.15rem 0.5rem;
+	font-size: 0.7rem;
+	font-weight: 500;
+	border-radius: var(--radius-sm);
+	background: var(--bg-sunken);
+	color: var(--text-secondary);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--border-hover);
+	border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--text-muted);
+}
+
+/* Utilities */
+.text-muted {
+	color: var(--text-muted);
+}
+
+.text-secondary {
+	color: var(--text-secondary);
+}
+
+.font-mono {
+	font-family: var(--font-mono);
+}

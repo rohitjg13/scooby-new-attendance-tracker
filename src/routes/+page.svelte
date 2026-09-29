@@ -184,6 +184,20 @@
 	const edited = (id: string, type: ComponentType) =>
 		COUNTS.some((f) => `${key(id, type)}/${f}` in counts);
 
+	/** forget the report and everything set up on top of it: days, hours, typed counts */
+	function clearAll() {
+		raw = "";
+		picks = {};
+		shape = {};
+		hours = {};
+		counts = {};
+		opened = {};
+		halfSem = {};
+		backfill = true;
+		// the save effect writes the empty state back; drop the blob so nothing stale lingers
+		localStorage.removeItem(KEY);
+	}
+
 	/** back to whatever the report itself said */
 	function resetCounts(id: string, type: ComponentType) {
 		const out = { ...counts };
@@ -240,7 +254,7 @@
 				</span>
 			{/if}
 			{#if raw}
-				<button class="btn btn-sm" onclick={() => ((raw = ""), (picks = {}), (shape = {}))}>
+				<button class="btn btn-sm" onclick={clearAll}>
 					Clear
 				</button>
 			{/if}

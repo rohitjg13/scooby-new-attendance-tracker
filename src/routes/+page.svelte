@@ -14,7 +14,8 @@
 
 	let { data }: { data: PageData } = $props();
 
-	const KEY = "attendance.v2";
+	const KEY = "attendance.hours";
+	const OLD_KEY = "attendance.v2";
 	const DEFAULT_TARGET = 70;
 	const PRESETS = [70, 45, 65];
 
@@ -69,33 +70,21 @@
 	// keystroke inside would spring it back.
 	const isOpen = (id: string, type: ComponentType) => opened[key(id, type)] ?? false;
 
-	// ponytail: localStorage — your numbers, your device.
+	// Only class hours outlive a reload; the report and everything built on it
+	// stay in memory. Hours go too the moment the report text changes.
 	$effect(() => {
-		const saved = localStorage.getItem(KEY);
-		if (!saved) return;
+		localStorage.removeItem(OLD_KEY); // older builds saved the whole page
 		try {
-			const v = JSON.parse(saved);
-			if (typeof v.raw === "string") raw = v.raw;
-			if (typeof v.target === "number") target = v.target;
-			if (typeof v.waiver === "string") waiver = v.waiver;
-			else if (typeof v.forgiveUntil === "string") waiver = dmy(v.forgiveUntil);
-			if (v.picks && typeof v.picks === "object") picks = v.picks;
-			if (v.shape && typeof v.shape === "object") shape = v.shape;
-			if (v.hours && typeof v.hours === "object") hours = v.hours;
-			if (v.counts && typeof v.counts === "object") counts = v.counts;
-			if (typeof v.backfill === "boolean") backfill = v.backfill;
-			if (v.halfSem && typeof v.halfSem === "object") halfSem = v.halfSem;
+			const v = JSON.parse(localStorage.getItem(KEY) ?? "null");
+			if (v && typeof v === "object") hours = v;
 		} catch {
 			// corrupt blob, start clean
 		}
 	});
 
 	$effect(() => {
-		localStorage.setItem(KEY, JSON.stringify({
-			raw,
-			// only a target you picked; a saved default would pin it past any change to DEFAULT_TARGET
-			target: target === DEFAULT_TARGET ? undefined : target,
-			waiver, picks, shape, hours, counts, backfill, halfSem }));
+		if (Object.keys(hours).length) localStorage.setItem(KEY, JSON.stringify(hours));
+		else localStorage.removeItem(KEY);
 	});
 
 	const forgiveUntil = $derived(isoOf(waiver));
@@ -184,7 +173,7 @@
 	const edited = (id: string, type: ComponentType) =>
 		COUNTS.some((f) => `${key(id, type)}/${f}` in counts);
 
-	/** forget the report and everything set up on top of it: days, hours, typed counts */
+	/** forget the report and everything set up on top of it, saved hours included */
 	function clearAll() {
 		raw = "";
 		picks = {};
@@ -194,8 +183,12 @@
 		opened = {};
 		halfSem = {};
 		backfill = true;
-		// the save effect writes the empty state back; drop the blob so nothing stale lingers
-		localStorage.removeItem(KEY);
+	}
+
+	/** a changed report is a new report: nothing set up for the old one carries over */
+	function setRaw(text: string) {
+		if (raw && text !== raw) clearAll();
+		raw = text;
 	}
 
 	/** back to whatever the report itself said */
@@ -236,7 +229,8 @@
 			rows={rows.length ? 3 : 8}
 			spellcheck="false"
 			placeholder={"Course Code\n17 Aug-1\n19 Aug-1\nCCC448 - LECCCF    P    A"}
-			bind:value={raw}
+			value={raw}
+			oninput={(e) => setRaw(e.currentTarget.value)}
 		></textarea>
 
 		<div class="paste-foot">

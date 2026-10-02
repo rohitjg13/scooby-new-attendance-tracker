@@ -15,6 +15,7 @@
 	let { data }: { data: PageData } = $props();
 
 	const KEY = "attendance.hours";
+	const HALF_KEY = "attendance.halfSem";
 	const OLD_KEY = "attendance.v2";
 	const DEFAULT_TARGET = 70;
 	const PRESETS = [70, 45, 65];
@@ -70,22 +71,31 @@
 	// keystroke inside would spring it back.
 	const isOpen = (id: string, type: ComponentType) => opened[key(id, type)] ?? false;
 
-	// Only class hours outlive a reload; the report and everything built on it
-	// stay in memory. Hours go too the moment the report text changes.
-	$effect(() => {
-		localStorage.removeItem(OLD_KEY); // older builds saved the whole page
+	// Only class hours and the half-semester CCC choice outlive a reload; the
+	// report and everything else stay in memory. Both go the moment the report
+	// text changes.
+	function load(k: string) {
 		try {
-			const v = JSON.parse(localStorage.getItem(KEY) ?? "null");
-			if (v && typeof v === "object") hours = v;
+			const v = JSON.parse(localStorage.getItem(k) ?? "null");
+			return v && typeof v === "object" ? v : null;
 		} catch {
-			// corrupt blob, start clean
+			return null; // corrupt blob, start clean
 		}
-	});
+	}
+
+	function save(k: string, v: Record<string, unknown>) {
+		if (Object.keys(v).length) localStorage.setItem(k, JSON.stringify(v));
+		else localStorage.removeItem(k);
+	}
 
 	$effect(() => {
-		if (Object.keys(hours).length) localStorage.setItem(KEY, JSON.stringify(hours));
-		else localStorage.removeItem(KEY);
+		localStorage.removeItem(OLD_KEY); // older builds saved the whole page
+		hours = load(KEY) ?? {};
+		halfSem = load(HALF_KEY) ?? {};
 	});
+
+	$effect(() => save(KEY, hours));
+	$effect(() => save(HALF_KEY, halfSem));
 
 	const forgiveUntil = $derived(isoOf(waiver));
 	const rows = $derived(parseReport(raw, data.semester.start));
@@ -173,7 +183,7 @@
 	const edited = (id: string, type: ComponentType) =>
 		COUNTS.some((f) => `${key(id, type)}/${f}` in counts);
 
-	/** forget the report and everything set up on top of it, saved hours included */
+	/** forget the report and everything set up on top of it, saved hours and half-sem picks included */
 	function clearAll() {
 		raw = "";
 		picks = {};

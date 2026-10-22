@@ -372,6 +372,15 @@
 					{/if}
 				</div>
 
+				{#if course.lateStart}
+					<p class="late">
+						This course first shows up on {dmy(course.lateStart)}, after the waiver date, so
+						it's counted only from that day on: nothing before it is credited to you. How
+						late joins like this will be handled hasn't been confirmed yet, so treat this
+						as the worst case. Your real number can only be the same or better.
+					</p>
+				{/if}
+
 				<div class="grid grid-head">
 					<span></span>
 					<span>Attended</span>
@@ -860,6 +869,15 @@
 		align-items: center;
 		font-size: 0.72rem;
 		color: var(--text-secondary);
+	}
+
+	.late {
+		margin: -0.25rem 0 1rem;
+		padding: 0.6rem 0.75rem;
+		border-left: 2px solid var(--warn);
+		font-size: 0.75rem;
+		line-height: 1.5;
+		color: var(--warn);
 	}
 
 	.name {

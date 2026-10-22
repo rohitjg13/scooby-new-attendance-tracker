@@ -15,6 +15,12 @@ import { remainingDays, WEEKDAYS, type Semester } from "./semester.ts";
 /** University-wide attendance waiver: everything up to here is credited. */
 export const FORGIVE_UNTIL = "2026-09-07";
 
+/** A CCC first seen after this is a second-half course: nothing before it is credited or flagged. */
+// ponytail: fixed date like FORGIVE_UNTIL, update each semester
+export const CCC_SECOND_HALF = "2026-10-01";
+
+const secondHalfCcc = (code: string, first: string) => code.startsWith("CCC") && first > CCC_SECOND_HALF;
+
 export type Status = "present" | "absent" | "leave" | "ignored";
 
 export type Session = {
@@ -127,20 +133,21 @@ export const classesLeft = (days: number[], left: Record<number, number>) =>
  * component. The report only starts where the portal started recording, but
  * the course started when the semester did, so those sit in nobody's column.
  * They're inside the waiver window by definition of being early, so the waiver
- * credits them. A component whose first class is after the waiver date was
- * joined late (or is a second-half CCC), so it gets nothing: the classes before
- * it weren't yours to attend.
+ * credits them. A course joined after the waiver date still gets the classes
+ * up to it; the ones between the waiver and its first class aren't counted at
+ * all. A second-half CCC gets nothing: the first half was never its to attend.
  */
 export function backfillCount(
 	sessions: Session[],
 	days: number[],
 	sem: Semester,
-	forgiveUntil: Date | null
+	forgiveUntil: Date | null,
+	code = ""
 ): number {
 	if (!days.length || !forgiveUntil) return 0;
 	const earliest = firstClass(sessions);
+	if (!earliest || secondHalfCcc(code, earliest)) return 0;
 	const until = forgiveUntil.toLocaleDateString("en-CA");
-	if (!earliest || earliest > until) return 0;
 
 	return sem.days.filter(
 		(d) => d.date < earliest && d.date <= until && days.includes(d.weekday)
@@ -189,7 +196,7 @@ export type ParsedCourse = {
 	forgiven: number;
 	/** classes credited because they predate what the report shows at all */
 	backfilled: number;
-	/** first class, when it's after the waiver date: a late join counted from there only; "" otherwise */
+	/** first class, when it's after the waiver date: a late join, credited up to the waiver and counted again from here; "" otherwise */
 	lateStart: string;
 	sections: string[];
 };
@@ -216,7 +223,7 @@ export function toCourses(
 			const sessions = mine.flatMap((r) => r.sessions);
 			const c = countSessions(sessions, forgiveUntil);
 			const days = weekdaysOf(sessions);
-			const early = backfill ? backfillCount(sessions, days, sem, forgiveUntil) : 0;
+			const early = backfill ? backfillCount(sessions, days, sem, forgiveUntil, code) : 0;
 			forgiven += c.forgiven;
 			backfilled += early;
 			components.push({
@@ -239,7 +246,7 @@ export function toCourses(
 			components,
 			forgiven,
 			backfilled,
-			lateStart: until && first > until ? first : "",
+			lateStart: until && first > until && !secondHalfCcc(code, first) ? first : "",
 			sections: rs.map((r) => r.section)
 		};
 	});

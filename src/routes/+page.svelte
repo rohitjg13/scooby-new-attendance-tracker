@@ -374,10 +374,11 @@
 
 				{#if course.lateStart}
 					<p class="late">
-						This course first shows up on {dmy(course.lateStart)}, after the waiver date, so
-						it's counted only from that day on: nothing before it is credited to you. How
-						late joins like this will be handled hasn't been confirmed yet, so treat this
-						as the worst case. Your real number can only be the same or better.
+						You joined this course on {dmy(course.lateStart)}, after the waiver date. It's
+						counted as attended up to {dmy(forgiveUntil)}, then from {dmy(course.lateStart)}
+						on; the classes in between aren't counted either way. This is the worst case:
+						how late joins will be handled hasn't been confirmed yet, and it can only turn
+						out the same or better.
 					</p>
 				{/if}
 

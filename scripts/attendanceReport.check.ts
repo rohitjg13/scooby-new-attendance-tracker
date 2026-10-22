@@ -125,9 +125,12 @@ assert.equal(backfillCount(lateMonday, [1], sem, null), 0);
 // and a component with no days picked can't have missed anything
 assert.equal(backfillCount(lateMonday, [], sem, cutoff), 0);
 
-// a course first seen after the waiver date was joined late: nothing before it is credited
+// a course joined after the waiver date is still credited the classes up to it
 const lateJoin = [{ raw: "15 Sep-1", date: new Date(2026, 8, 15), status: "present" as const }];
-assert.equal(backfillCount(lateJoin, [2], sem, cutoff), 0);
+assert.equal(backfillCount(lateJoin, [2], sem, cutoff, "ECE399"), backfillCount(lateMonday, [2], sem, cutoff));
+// a CCC first seen after 1 Oct is a second-half course: nothing before it at all
+const lateCcc = [{ raw: "12 Oct-1", date: new Date(2026, 9, 12), status: "present" as const }];
+assert.equal(backfillCount(lateCcc, [1], sem, cutoff, "CCC401"), 0);
 
 const courses = toCourses(rows, cutoff, sem, false);
 assert.deepEqual(courses.map((c) => c.name), ["CCC448", "ECE301", "ECE302"]);

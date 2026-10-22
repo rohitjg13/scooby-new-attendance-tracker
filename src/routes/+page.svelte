@@ -373,19 +373,14 @@
 				</div>
 
 				{#if course.lateStart}
-					<div class="late">
-						<b>Late enrolment · {dmy(course.lateStart)}</b>
-						<p>You enrolled in this course after the waiver date, so for now it's counted as:</p>
-						<ul>
-							<li><b>{dmy(data.semester.start)} – {dmy(forgiveUntil)}</b> credited as attended</li>
-							<li><b>In between</b> not counted</li>
-							<li><b>From {dmy(course.lateStart)}</b> as the report shows</li>
-						</ul>
-						<p>
-							How such cases are handled hasn't been finalised yet, so this is the worst
-							case. Whatever is decided, your number can only stay the same or go up.
-						</p>
-					</div>
+					<p class="late">
+						You got enrolled into this course on <b>{dmy(course.lateStart)}</b>, which is
+						after the waiver date. Currently attendance is being counted from
+						<b>{dmy(data.semester.start)}</b> to <b>{dmy(forgiveUntil)}</b>, and then from
+						<b>{dmy(course.lateStart)}</b> onwards. Since the accommodation for such cases is
+						yet to be finalised, we are considering the worst case, so that you'll be
+						unaffected either way.
+					</p>
 				{/if}
 
 				<div class="grid grid-head">
@@ -885,25 +880,11 @@
 		font-size: 0.75rem;
 		line-height: 1.5;
 		color: var(--text-secondary);
-		display: flex;
-		flex-direction: column;
-		gap: 0.35rem;
 	}
 
-	.late > b {
+	.late b {
 		color: var(--warn);
 		font-weight: 500;
-	}
-
-	.late ul {
-		margin: 0;
-		padding-left: 1.1rem;
-	}
-
-	.late li b {
-		font-family: var(--font-mono);
-		font-weight: 400;
-		color: var(--text);
 	}
 
 	.name {

@@ -22,6 +22,13 @@
 
 	/** ISO dates are for storing, DD/MM/YYYY is for reading */
 	const dmy = (iso: string) => (iso ? iso.split("-").reverse().join("/") : "");
+	// "2026-09-15" → "15th September"
+	const longDate = (iso: string) => {
+		const d = new Date(iso + "T00:00:00");
+		const n = d.getDate();
+		const th = n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th";
+		return `${n}${th} ${d.toLocaleDateString("en-GB", { month: "long" })}`;
+	};
 
 	/** DD/MM/YYYY back to ISO; "" for anything half-typed or impossible */
 	function isoOf(text: string): string {
@@ -374,10 +381,10 @@
 
 				{#if course.lateStart}
 					<p class="late">
-						You got enrolled into this course on <b>{dmy(course.lateStart)}</b>, which is
+						You got enrolled into this course on <b>{longDate(course.lateStart)}</b>, which is
 						after the waiver date. Currently attendance is being counted from
-						<b>{dmy(data.semester.start)}</b> to <b>{dmy(forgiveUntil)}</b>, and then from
-						<b>{dmy(course.lateStart)}</b> onwards. Since the accommodation for such cases is
+						<b>{longDate(data.semester.start)}</b> to <b>{longDate(forgiveUntil)}</b>, and then from
+						<b>{longDate(course.lateStart)}</b> onwards. Since the accommodation for such cases is
 						yet to be finalised, we are considering the worst case, so that you'll be
 						unaffected either way.
 					</p>

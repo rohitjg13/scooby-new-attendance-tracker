@@ -26,18 +26,8 @@
 </script>
 
 <svelte:head>
-	<meta name="theme-color" content="#fffdf6" media="(prefers-color-scheme: light)" />
-	<meta name="theme-color" content="#0d0c09" media="(prefers-color-scheme: dark)" />
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link
-		rel="preconnect"
-		href="https://fonts.gstatic.com"
-		crossorigin="anonymous"
-	/>
-	<link
-		href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Libre+Franklin:wght@400;500;600;700&display=swap"
-		rel="stylesheet"
-	/>
+	<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
+	<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
 </svelte:head>
 
 <div class="app-container">
@@ -66,7 +56,7 @@
 				href="https://github.com/rohitjg13"
 				target="_blank"
 				rel="noopener noreferrer">Rohit J G</a
-			>
+			> (Secretary of IT) in collaboration with the Secretaries of Academics
 		</p>
 	</footer>
 </div>
@@ -93,18 +83,21 @@
 	   can never float over a dialog. */
 	.theme {
 		position: fixed;
-		top: 0.6rem;
-		right: 0.6rem;
+		top: 1rem;
+		right: 1rem;
 		z-index: 90;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 32px;
-		height: 32px;
+		width: 38px;
+		height: 38px;
 		padding: 0;
-		border: 2px solid var(--border);
-		border-radius: var(--radius-sm);
-		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--bg-card) 80%, transparent);
+		backdrop-filter: saturate(180%) blur(20px);
+		-webkit-backdrop-filter: saturate(180%) blur(20px);
+		box-shadow: var(--shadow);
 		color: var(--text-secondary);
 		cursor: pointer;
 		transition:
@@ -114,31 +107,30 @@
 
 	.theme:hover {
 		color: var(--accent);
-		border-color: var(--accent);
+		border-color: var(--border-hover);
 	}
 
 	.theme svg {
-		width: 16px;
-		height: 16px;
+		width: 17px;
+		height: 17px;
 	}
 
 	.rule {
 		display: block;
-		width: 28px;
+		width: 40px;
 		height: 1px;
 		margin: 0 auto 1.25rem;
-		background: var(--border-hover);
+		background: var(--border);
 	}
 
 	.footer a {
 		color: var(--text-secondary);
+		font-weight: 500;
 		text-decoration: none;
-		border-bottom: 1px solid var(--border-hover);
 		transition: color 0.15s;
 	}
 
 	.footer a:hover {
 		color: var(--accent);
-		border-color: var(--accent);
 	}
 </style>

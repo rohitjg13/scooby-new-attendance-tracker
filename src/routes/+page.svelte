@@ -560,16 +560,22 @@
 						</div>
 					{:else}
 					<div class="range">
-						<span>Best case <b>{fmt(s.best)}%</b></span>
-						<span>Skip everything left <b>{fmt(s.worst)}%</b></span>
+						<span>Attend all remaining: <b>{fmt(s.best)}%</b></span>
+						<span>Miss all remaining: <b>{fmt(s.worst)}%</b></span>
 					</div>
 					{/if}
 				</div>
 
+				{#if ok && s.current !== null}
+					<div class="meter" class:bad={s.current < target} aria-hidden="true">
+						<span style="width: {Math.min(100, s.current)}%"></span>
+						<i style="left: {Math.min(100, target)}%"></i>
+					</div>
+				{/if}
+
+				{#if ok}
 				<p class="verdict" class:bad={s.impossible}>
-					{#if !ok}
-						&nbsp;
-					{:else if s.impossible}
+					{#if s.impossible}
 						Can't reach {target}% any more — best you can finish at is {fmt(s.best)}%.
 					{:else if s.mustAttend > 0}
 						Attend <b>{fmt(s.mustAttend)} hrs</b> of what's left
@@ -581,6 +587,7 @@
 						Nothing left to attend.
 					{/if}
 				</p>
+				{/if}
 			</section>
 		{/each}
 	</div>
@@ -645,21 +652,22 @@
 	.att {
 		flex: 1;
 		width: 100%;
-		max-width: 1140px;
+		max-width: 1180px;
 		margin: 0 auto;
-		padding: 4rem 1.5rem 3rem;
+		padding: 3.5rem 1.5rem 2.5rem;
 		overflow-x: clip;
 	}
 
 	.att-head {
-		margin-bottom: 2rem;
+		margin-bottom: 1.75rem;
+		text-align: center;
 	}
 
 	.sub {
-		margin-top: 0.5rem;
+		margin: 0.75rem auto 0;
 		color: var(--text-secondary);
-		font-size: 0.9rem;
-		max-width: 60ch;
+		font-size: 0.95rem;
+		max-width: 58ch;
 	}
 
 	.needs {
@@ -669,72 +677,108 @@
 
 	.needs b {
 		color: var(--bad);
-		font-weight: 500;
+		font-weight: 600;
 	}
 
 	.howto {
-		margin-bottom: 0.5rem;
-		font-size: 0.76rem;
+		margin-bottom: 0.75rem;
+		font-size: var(--text-sm);
 		line-height: 1.6;
 		color: var(--text-muted);
-		max-width: 72ch;
 	}
 
 	.howto b {
-		color: var(--text-secondary);
+		color: var(--text);
 		font-weight: 500;
 	}
 
 	.howto a {
-		color: var(--text);
+		color: var(--accent);
+		font-weight: 500;
+		text-decoration: none;
+	}
+
+	.howto a:hover {
 		text-decoration: underline;
-		text-underline-offset: 2px;
+		text-underline-offset: 3px;
 	}
 
 	/* the paste box */
 	.paste {
-		margin-bottom: 1.25rem;
+		margin-bottom: 1rem;
+		padding: 1.25rem;
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-lift);
 	}
 
 	.src {
-		font-family: var(--font-mono);
+		font-family: var(--font-code);
 		font-size: 0.78rem;
 		line-height: 1.6;
 		resize: vertical;
 		white-space: pre;
 		overflow-wrap: normal;
 		overflow-x: auto;
+		background: var(--bg-sunken);
+		border-style: dashed;
+	}
+
+	.src:focus {
+		background: var(--bg-input);
+		border-style: solid;
 	}
 
 	.paste-foot {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
-		margin-top: 0.5rem;
-		font-size: 0.75rem;
+		margin-top: 0.75rem;
+		font-size: var(--text-sm);
 		color: var(--text-muted);
+	}
+
+	.paste-foot:empty {
+		display: none;
 	}
 
 	.paste-foot .btn {
 		margin-left: auto;
 	}
 
-	.found b {
-		color: var(--text-secondary);
+	.found {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.25rem 0.7rem;
+		border-radius: 999px;
+		background: var(--ok-dim);
+		color: var(--ok);
 		font-weight: 500;
+	}
+
+	.found b {
+		font-weight: 700;
 	}
 
 	.miss {
 		color: var(--bad);
 	}
 
+	/* controls toolbar */
 	.bar {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.5rem 0.9rem;
-		margin-bottom: 1.25rem;
-		font-size: 0.8rem;
+		gap: 0.6rem 1rem;
+		margin-bottom: 1.5rem;
+		padding: 0.7rem 1rem;
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow);
+		font-size: var(--text-md);
 		color: var(--text-secondary);
 	}
 
@@ -744,38 +788,50 @@
 		gap: 0.4rem;
 	}
 
+	.bar-group > label {
+		font-weight: 500;
+		color: var(--text);
+	}
+
 	.check {
-		gap: 0.35rem;
+		gap: 0.45rem;
 		cursor: pointer;
 	}
 
 	.check input {
-		accent-color: var(--text);
+		width: 15px;
+		height: 15px;
+		accent-color: var(--accent);
 		cursor: pointer;
 	}
 
 	.bar-sep {
 		width: 1px;
-		align-self: stretch;
+		height: 1.5rem;
 		background: var(--border);
 	}
 
 	.bar-group .btn {
-		padding-inline: 0.6rem;
+		padding-inline: 0.8rem;
+		box-shadow: none;
+		min-height: var(--h-md);
 	}
 
 	.bar-group .on {
-		background: var(--text);
-		color: var(--bg);
-		border-color: var(--text);
+		background: var(--accent);
+		color: var(--accent-ink);
+		border-color: var(--accent);
 	}
 
 	.target-input {
-		width: 4rem;
-		padding-inline: 0.5rem;
+		width: 3.75rem;
+		padding: 0 0.5rem;
 		text-align: center;
+		font-family: var(--font-mono);
+		font-weight: 600;
 		appearance: textfield;
 		-moz-appearance: textfield;
+		height: var(--h-md);
 	}
 
 	/* the spinner eats the room the number needs */
@@ -792,54 +848,64 @@
 
 	.date-input {
 		width: 8.5rem;
-		padding-inline: 0.6rem;
+		padding: 0 0.6rem;
 		font-family: var(--font-mono);
-		font-size: 0.8rem;
+		font-size: var(--text-md);
+		height: var(--h-md);
 	}
 
 	.pcnt {
-		margin-left: -0.25rem;
+		margin-left: -0.15rem;
+		color: var(--text-muted);
 	}
 
 	/* headline count */
 	.tally {
 		display: flex;
 		align-items: center;
-		gap: 0.6rem;
-		background: var(--bg-card);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
+		gap: 1rem;
 		padding: 1rem 1.25rem;
 		margin-bottom: 1rem;
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--border);
+		background: var(--bg-card);
+		box-shadow: var(--shadow);
 	}
 
 	.tally-n {
 		font-family: var(--font-mono);
-		font-size: 1.75rem;
-		letter-spacing: -0.02em;
+		font-size: 2.25rem;
+		font-weight: 600;
+		letter-spacing: -0.025em;
+		line-height: 1;
+		color: var(--accent);
 	}
 
 	.tally-of {
 		color: var(--text-muted);
-		font-size: 1.1rem;
+		font-size: 1.25rem;
+		font-weight: 400;
 	}
 
 	.tally-label {
 		display: flex;
 		flex-direction: column;
-		font-size: 0.8rem;
-		color: var(--text-secondary);
+		gap: 0.2rem;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: var(--text);
 	}
 
 	.tally-sub {
-		font-size: 0.68rem;
+		font-size: var(--text-sm);
+		font-weight: 400;
 		line-height: 1.5;
 		color: var(--text-muted);
-		max-width: 70ch;
+		max-width: 75ch;
 	}
 
 	.tally.waiting {
-		border-color: var(--bad);
+		border-color: color-mix(in srgb, var(--bad) 35%, var(--border));
 	}
 
 	.tally.waiting .tally-n,
@@ -849,9 +915,7 @@
 
 	.cards {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(28rem, 100%), 1fr));
-		/* every card the same size, whatever the tallest one needs */
-		grid-auto-rows: 1fr;
+		grid-template-columns: repeat(auto-fill, minmax(min(30rem, 100%), 1fr));
 		gap: 1rem;
 	}
 
@@ -861,65 +925,88 @@
 		min-width: 0;
 		background: var(--bg-card);
 		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		padding: 1.25rem;
+		border-radius: var(--radius-lg);
+		padding: 1.1rem 1.15rem 1rem;
+		box-shadow: var(--shadow);
+		transition:
+			box-shadow 0.2s,
+			border-color 0.2s;
+	}
+
+	.card:hover {
+		border-color: var(--border-hover);
+		box-shadow: var(--shadow-lift);
 	}
 
 	.card-head {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.4rem 0.75rem;
-		align-items: baseline;
-		margin-bottom: 1rem;
+		gap: 0.5rem 0.75rem;
+		align-items: center;
+		margin-bottom: 0.75rem;
 	}
 
 	.half {
 		display: flex;
 		align-items: center;
-		font-size: 0.72rem;
+		padding: 0 0.65rem;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		font-size: var(--text-sm);
 		color: var(--text-secondary);
+		height: var(--h-sm);
 	}
 
 	.late {
-		margin: -0.25rem 0 1rem;
-		padding: 0.6rem 0.75rem;
-		border-left: 2px solid var(--warn);
-		font-size: 0.75rem;
-		line-height: 1.5;
+		margin: -0.15rem 0 0.75rem;
+		padding: 0.7rem 0.85rem;
+		border-radius: var(--radius);
+		background: var(--warn-dim);
+		font-size: var(--text-sm);
+		line-height: 1.55;
 		color: var(--text-secondary);
 	}
 
 	.late b {
 		color: var(--warn);
-		font-weight: 500;
+		font-weight: 600;
 	}
 
 	.name {
-		font-size: 1rem;
-		font-weight: 500;
-		letter-spacing: -0.01em;
+		font-size: 1.05rem;
+		font-weight: 600;
+		letter-spacing: -0.015em;
 	}
 
 	.sections {
+		padding: 0 0.65rem;
+		border-radius: 999px;
+		background: var(--bg-sunken);
 		font-family: var(--font-mono);
-		font-size: 0.68rem;
+		font-size: var(--text-sm);
 		color: var(--text-muted);
 		margin-left: auto;
+		height: var(--h-sm);
+		display: inline-flex;
+		align-items: center;
 	}
 
 	.grid {
 		display: grid;
 		min-width: 0;
-		grid-template-columns: 2.8rem repeat(5, minmax(0, 1fr)) 3.2rem;
+		grid-template-columns: 3rem repeat(5, minmax(0, 1fr)) 3.4rem;
 		gap: 0.4rem;
 		align-items: center;
 		margin-bottom: 0.4rem;
 	}
 
 	.grid-head {
-		font-size: 0.66rem;
+		font-size: var(--text-xs);
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
 		color: var(--text-muted);
-		margin-bottom: 0.3rem;
+		margin-bottom: 0.35rem;
 		text-align: center;
 	}
 
@@ -928,16 +1015,24 @@
 	}
 
 	.ctype {
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: var(--text-secondary);
+		justify-self: start;
+		padding: 0 0.5rem;
+		border-radius: var(--radius-sm);
+		background: var(--accent-dim);
+		color: var(--accent);
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		height: var(--h-sm);
+		display: inline-flex;
+		align-items: center;
 	}
 
 	.cell {
 		display: flex;
 		justify-content: center;
 		min-width: 0;
-		font-size: 0.8rem;
+		font-size: var(--text-md);
 	}
 
 	.cell.miss .n {
@@ -947,6 +1042,7 @@
 	/* nothing is assumed about how long a class runs, so an empty one shouts */
 	.hrs-cell.unset .n {
 		border-color: var(--bad);
+		background: var(--bad-dim);
 		color: var(--bad);
 	}
 
@@ -956,8 +1052,8 @@
 		align-items: center;
 		justify-content: center;
 		width: 100%;
-		min-height: 2.1rem;
-		font-size: 0.8rem;
+		min-height: var(--h-md);
+		font-size: var(--text-md);
 	}
 
 	.hrs-sel {
@@ -972,31 +1068,43 @@
 
 	.n {
 		min-width: 0;
-		padding: 0.45rem 0.25rem;
+		padding: 0 0.25rem;
 		text-align: center;
 		font-family: var(--font-mono);
-		font-size: 0.8rem;
+		font-size: var(--text-md);
+		border-radius: var(--radius-sm);
+		background: var(--bg-sunken);
+		border-color: transparent;
+		height: var(--h-md);
 	}
 
-	/* which weekdays this component meets on, and how long a class runs — both
-	   set once and then out of the way, so the cards stay the same shape */
+	.n:hover {
+		border-color: var(--border-hover);
+	}
+
+	/* which weekdays this component meets on — set once and then out of the
+	   way, so the cards stay the same shape */
 	.picker {
-		padding-left: 2.8rem;
-		margin-bottom: 0.9rem;
+		padding-left: 3.4rem;
+		margin-bottom: 0.55rem;
 	}
 
 	.picker summary {
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
-		padding: 0.25rem 0.5rem;
-		border: 1px dashed var(--border-hover);
-		border-radius: var(--radius-sm);
+		gap: 0.45rem;
+		padding: 0 0.7rem;
+		border: 1px solid var(--border);
+		border-radius: 999px;
 		list-style: none;
 		cursor: pointer;
-		font-size: 0.68rem;
+		font-size: var(--text-sm);
 		color: var(--text-muted);
-		transition: all 0.15s;
+		transition:
+			border-color 0.15s,
+			color 0.15s,
+			background 0.15s;
+		min-height: var(--h-sm);
 	}
 
 	.picker summary::-webkit-details-marker {
@@ -1004,19 +1112,23 @@
 	}
 
 	.picker summary::before {
-		content: "+";
-		font-size: 0.75rem;
-		line-height: 1;
+		content: '';
+		width: 6px;
+		height: 6px;
+		border-right: 1.5px solid currentColor;
+		border-bottom: 1.5px solid currentColor;
+		transform: rotate(-45deg);
+		transition: transform 0.2s;
 		opacity: 0.7;
 	}
 
 	.picker[open] summary::before {
-		content: "−";
+		transform: rotate(45deg);
 	}
 
 	.picker summary.unset {
-		border-color: var(--bad);
-		border-style: solid;
+		border-color: color-mix(in srgb, var(--bad) 40%, var(--border));
+		background: var(--bad-dim);
 		color: var(--bad);
 	}
 
@@ -1025,26 +1137,27 @@
 	}
 
 	.picker summary:hover {
-		border-color: var(--text-secondary);
+		border-color: var(--border-hover);
+		background: var(--bg-hover);
 		color: var(--text-secondary);
 	}
 
 	.sum-days {
 		color: var(--text-secondary);
-		letter-spacing: 0.03em;
+		font-weight: 500;
+		letter-spacing: 0.02em;
 	}
 
 	.sum-hrs {
 		margin-left: auto;
-		font-family: var(--font-mono);
-		font-size: 0.66rem;
+		font-size: var(--text-sm);
 	}
 
 	.pick-body {
 		display: flex;
 		flex-direction: column;
-		gap: 0.35rem;
-		padding: 0.5rem 0 0.15rem;
+		gap: 0.45rem;
+		padding: 0.6rem 0 0.15rem;
 	}
 
 	.pick-row {
@@ -1056,35 +1169,39 @@
 
 	.d {
 		display: flex;
-		align-items: baseline;
+		align-items: center;
 		gap: 0.3rem;
-		padding: 0.2rem 0.4rem;
-		background: var(--bg-input);
-		border: 1px dashed var(--border-hover);
-		border-radius: var(--radius-sm);
+		padding: 0 0.65rem;
+		background: var(--bg-sunken);
+		border: 1px solid transparent;
+		border-radius: 999px;
 		color: var(--text-secondary);
-		font-size: 0.68rem;
-		letter-spacing: 0.03em;
+		font: inherit;
+		font-size: var(--text-sm);
+		font-weight: 500;
 		cursor: pointer;
-		transition: all 0.15s;
+		transition:
+			background 0.15s,
+			color 0.15s,
+			border-color 0.15s;
+		height: var(--h-sm);
 	}
 
 	.d:hover {
-		border-color: var(--text-secondary);
+		border-color: var(--border-hover);
 		color: var(--text);
 	}
 
 	.d.on {
-		background: var(--text);
-		border-style: solid;
-		border-color: var(--text);
-		color: var(--bg);
+		background: var(--accent);
+		border-color: var(--accent);
+		color: var(--accent-ink);
 	}
 
 	.d-n {
 		font-family: var(--font-mono);
-		font-size: 0.66rem;
-		opacity: 0.6;
+		font-size: var(--text-xs);
+		opacity: 0.65;
 	}
 
 	.tools {
@@ -1096,50 +1213,62 @@
 
 	.drop,
 	.add-comp {
-		padding: 0.2rem 0.45rem;
+		height: var(--h-sm);
+		padding: 0 0.7rem;
 		background: none;
 		border: none;
+		border-radius: 999px;
 		color: var(--text-muted);
-		font-size: 0.68rem;
+		font: inherit;
+		font-size: var(--text-sm);
 		cursor: pointer;
-		transition: color 0.15s;
+		transition:
+			color 0.15s,
+			background 0.15s;
 	}
 
-
-	.drop:hover,
-	.add-comp:hover {
-		color: var(--text);
+	.drop:hover {
+		background: var(--bad-dim);
+		color: var(--bad);
 	}
 
 	.adds {
 		display: flex;
-		gap: 0.2rem;
-		padding-left: 2.8rem;
-		margin-top: -0.35rem;
+		gap: 0.3rem;
+		padding-left: 3.4rem;
+		margin-bottom: 0.55rem;
+	}
+
+	/* breathing room above the totals' rule, whatever comes last before it */
+	.card > :has(+ .out) {
+		margin-bottom: 1rem;
 	}
 
 	.add-comp {
 		border: 1px dashed var(--border-hover);
-		border-radius: var(--radius-sm);
 		font-family: var(--font-mono);
 	}
 
 	.add-comp:hover {
-		border-color: var(--text-secondary);
+		border-color: var(--accent);
+		border-style: solid;
+		background: var(--accent-dim);
+		color: var(--accent);
 	}
 
 	.col-pct {
 		text-align: right;
-		font-size: 0.78rem;
+		font-size: var(--text-md);
+		font-weight: 500;
 	}
 
 	.mono {
 		font-family: var(--font-mono);
-		color: var(--text-secondary);
+		color: var(--text);
 	}
 
 	.mono.bad {
-		color: var(--text-muted);
+		color: var(--bad);
 	}
 
 	.m-label {
@@ -1149,86 +1278,145 @@
 	/* the totals sit on the floor of the card, so they line up across a row */
 	.out {
 		display: flex;
-		align-items: baseline;
+		align-items: center;
+		justify-content: space-between;
 		gap: 1.25rem;
 		flex-wrap: wrap;
 		margin-top: auto;
-		padding-top: 1.25rem;
+		padding-top: 0.85rem;
 		border-top: 1px solid var(--border);
 	}
 
 	.big {
+		display: flex;
+		flex-direction: column;
 		font-family: var(--font-mono);
-		font-size: 1.75rem;
-		letter-spacing: -0.02em;
+		font-size: 2rem;
+		font-weight: 600;
+		letter-spacing: -0.025em;
+		line-height: 1;
+		color: var(--ok);
 	}
 
 	.big.bad {
-		color: var(--text-secondary);
+		color: var(--bad);
 	}
 
 	.big-label {
+		order: -1;
+		margin-bottom: 0.35rem;
 		font-family: var(--font);
-		font-size: 0.7rem;
+		font-size: var(--text-xs);
+		font-weight: 500;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
 		color: var(--text-muted);
-		margin-left: 0.4rem;
 	}
 
 	.range {
 		display: flex;
 		flex-direction: column;
-		gap: 0.15rem;
-		font-size: 0.78rem;
+		align-items: flex-end;
+		gap: 0.2rem;
+		font-size: var(--text-sm);
 		color: var(--text-muted);
 	}
 
 	.range b {
-		color: var(--text-secondary);
+		color: var(--text);
 		font-family: var(--font-mono);
-		font-weight: 500;
+		font-weight: 600;
+	}
+
+	/* where the course total sits against the target */
+	.meter {
+		position: relative;
+		height: 4px;
+		margin-top: 0.75rem;
+		border-radius: 999px;
+		background: var(--bg-sunken);
+	}
+
+	.meter span {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: var(--ok);
+		transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+
+	.meter.bad span {
+		background: var(--bad);
+	}
+
+	.meter i {
+		position: absolute;
+		top: -3px;
+		bottom: -3px;
+		width: 2px;
+		margin-left: -1px;
+		border-radius: 1px;
+		background: var(--text);
+		opacity: 0.6;
 	}
 
 	.verdict {
-		margin-top: 0.9rem;
-		font-size: 0.85rem;
+		margin-top: 0.65rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: var(--radius);
+		background: var(--bg-sunken);
+		font-size: var(--text-md);
 		color: var(--text-secondary);
 	}
 
 	.verdict b {
 		color: var(--text);
+		font-weight: 600;
 	}
 
 	.verdict.bad {
-		color: var(--text-muted);
+		background: var(--bad-dim);
+		color: var(--bad);
 	}
 
 	.note {
-		margin-top: 1.5rem;
-		font-size: 0.78rem;
+		margin-top: 2rem;
+		columns: 20rem;
+		column-gap: 0.75rem;
+		font-size: var(--text-sm);
 		line-height: 1.6;
 		color: var(--text-muted);
-		max-width: 65ch;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
+	}
+
+	.note p {
+		break-inside: avoid;
+		margin-bottom: 0.75rem;
+		padding: 0.85rem 1rem;
+		border-radius: var(--radius-lg);
+		background: var(--bg-card);
 	}
 
 	.note b {
-		color: var(--text-secondary);
-		font-weight: 500;
+		color: var(--text);
+		font-weight: 600;
 	}
 
 	@media (max-width: 560px) {
 		.att {
-			padding: 2.5rem 1rem 2.5rem;
+			padding: 3rem 1rem 2rem;
 		}
 
-		.card {
+		h1 {
+			font-size: 1.85rem;
+		}
+
+		.card,
+		.paste {
 			padding: 1rem;
 		}
 
 		.bar {
-			gap: 0.5rem;
+			gap: 0.6rem;
 		}
 
 		.bar-sep {
@@ -1292,14 +1480,19 @@
 			align-items: center;
 			gap: 0.1rem;
 			min-width: 0;
-			padding: 0.4rem 0.3rem 0.45rem;
-			background: var(--bg-input);
-			border: 1px dashed var(--border-hover);
+			padding: 0.45rem 0.3rem 0.5rem;
+			background: var(--bg-sunken);
+			border: 1px solid transparent;
 			border-radius: var(--radius);
+		}
+
+		.cell:focus-within {
+			border-color: var(--accent);
 		}
 
 		.cell .n {
 			width: 100%;
+			height: auto;
 			padding: 0;
 			border: none;
 			background: transparent;
@@ -1321,10 +1514,16 @@
 
 		.m-label {
 			display: block;
-			font-size: 0.68rem;
+			font-size: var(--text-xs);
+			font-weight: 500;
 			letter-spacing: 0.04em;
+			text-transform: uppercase;
 			color: var(--text-muted);
 			white-space: nowrap;
+		}
+
+		.range {
+			align-items: flex-start;
 		}
 	}
 </style>

@@ -1,179 +1,127 @@
-/* Design language — "Paper"
-   Warm paper ground, ink-dark text, and a single violet accent reserved for
-   things you can act on. Soft radii, generous padding, shadow instead of
-   contrast for depth. One grotesque throughout; mono for every number, code
-   and time, so figures line up wherever they appear. */
+/* Design language — Apple system
+   Grouped grey ground, white cards, one blue for things you can act on.
+   System colours, SF Pro via the system font stack, tabular figures so
+   numbers line up without a monospace face. No gradients. */
 
 :root {
 	color-scheme: light;
 
-	/* Warm newsprint, not white. */
-	--bg: #fffdf6;
+	--bg: #f5f5f7;
 	--bg-card: #ffffff;
-	--bg-hover: #f5f1e6;
+	--bg-hover: #f2f2f4;
 	--bg-input: #ffffff;
-	--bg-sunken: #f4f0e4;
+	--bg-sunken: #f2f2f4;
 
-	--text: #14110d;
-	--text-secondary: #4c463c;
-	--text-muted: #6b6456;
+	--text: #1d1d1f;
+	--text-secondary: #424245;
+	--text-muted: #6e6e73;
 
-	--border: #e3ded0;
-	--border-hover: #cbc4b0;
-	--border-strong: #9d9581;
+	--border: #e5e5ea;
+	--border-hover: #d1d1d6;
+	--border-strong: #8e8e93;
 
-	/* A signal colour — the one that means "do something here". */
-	--accent: #e12d0b;
-	--accent-hover: #bd2308;
-	--accent-ink: #fffdf6;
-	--accent-dim: rgba(225, 45, 11, 0.12);
+	--accent: #0071e3;
+	--accent-hover: #0077ed;
+	--accent-ink: #ffffff;
+	--accent-dim: rgba(0, 113, 227, 0.1);
 
-	--ok: #0a6f45;
-	--warn: #8a5300;
-	--bad: #c62317;
-	--conflict: #c62317;
+	--ok: #248a3d;
+	--ok-dim: rgba(36, 138, 61, 0.1);
+	--warn: #b25000;
+	--warn-dim: rgba(255, 149, 0, 0.12);
+	--bad: #d70015;
+	--bad-dim: rgba(255, 59, 48, 0.1);
 
-	--ring: rgba(225, 45, 11, 0.6);
-	--shadow: 0 1px 2px rgba(20, 17, 13, 0.05), 0 10px 28px -14px rgba(20, 17, 13, 0.22);
-	--shadow-lift: 0 2px 4px rgba(20, 17, 13, 0.06), 0 18px 40px -18px rgba(20, 17, 13, 0.28);
+	--ring: rgba(0, 113, 227, 0.5);
+	--shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+	--shadow-lift: 0 4px 16px rgba(0, 0, 0, 0.06);
 
-	/* Per-thing colour: hue is identity, the theme supplies lightness and
-	   chroma. Saturated and solid — these are blocks of colour, not washes. */
-	/* 0.49, not higher: at 0.56 the teal and green hues dropped under 4.5:1
-	   both as small text and under white ink, measured across all eight. */
-	--tone-l: 0.49;
-	--tone-c: 0.19;
-	--tone-on: #fffdf6;
-	--tone-soft-l: 0.94;
-	--tone-soft-c: 0.05;
+	--font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', Roboto, sans-serif;
+	--font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', 'Segoe UI', Roboto, sans-serif;
+	/* figures, not code: same face, tabular digits */
+	--font-mono: var(--font);
+	--font-code: ui-monospace, 'SF Mono', Menlo, monospace;
 
-	--hue-red: 27;
-	--hue-orange: 55;
-	--hue-yellow: 88;
-	--hue-green: 145;
-	--hue-teal: 195;
-	--hue-blue: 250;
-	--hue-purple: 300;
-	--hue-pink: 355;
+	/* one scale for every control: three text sizes, two heights */
+	--text-xs: 0.68rem;
+	--text-sm: 0.75rem;
+	--text-md: 0.82rem;
+	--h-sm: 1.65rem;
+	--h-md: 2rem;
 
-	/* Academic-calendar categories: one hue each, defined per theme because
-	   they are used as text as well as fill. */
-	--cat-exam: #5344a0;
-	--cat-deadline: #8a6d1f;
-	--cat-holiday: #a34449;
-	--cat-break: #3d7c62;
-	--cat-event: #4b5f80;
-	--cat-restricted: #86527f;
-
-	/* Lightness the planner builds its per-department hues at. */
-	--tint-l: 0.55;
-
-	--font: 'Libre Franklin', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-	--font-display: 'Libre Franklin', -apple-system, 'Segoe UI', sans-serif;
-	--font-mono: 'IBM Plex Mono', 'SF Mono', ui-monospace, monospace;
-
-	--radius: 7px;
-	--radius-sm: 4px;
-
+	--radius: 10px;
+	--radius-sm: 8px;
+	--radius-lg: 14px;
 }
 
-/* Dark theme. Same roles, same accent hue lifted so it still reads as the
-   one interactive colour. Applied when the reader picked dark, or when they
-   picked nothing and their system is dark. */
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme='light']) {
 		color-scheme: dark;
 
-		--bg: #0d0c09;
-		--bg-card: #191712;
-		--bg-hover: #25221b;
-		--bg-input: #191712;
-		--bg-sunken: #131110;
+		--bg: #000000;
+		--bg-card: #1c1c1e;
+		--bg-hover: #2c2c2e;
+		--bg-input: #1c1c1e;
+		--bg-sunken: #2c2c2e;
 
-		--text: #faf6ec;
-		--text-secondary: #c2baa9;
-		--text-muted: #968d7c;
+		--text: #f5f5f7;
+		--text-secondary: #d1d1d6;
+		--text-muted: #98989d;
 
-		--border: #37322a;
-		--border-hover: #4e473c;
-		--border-strong: #6d6455;
+		--border: #38383a;
+		--border-hover: #48484a;
+		--border-strong: #636366;
 
-		--accent: #ff5a35;
-		--accent-hover: #ff7452;
-		--accent-ink: #150c08;
-		--accent-dim: rgba(255, 90, 53, 0.2);
+		--accent: #0a84ff;
+		--accent-hover: #409cff;
+		--accent-ink: #ffffff;
+		--accent-dim: rgba(10, 132, 255, 0.18);
 
-		--ok: #5bd196;
-		--warn: #e8b155;
-		--bad: #ff8073;
-		--conflict: #ff8073;
+		--ok: #30d158;
+		--ok-dim: rgba(48, 209, 88, 0.16);
+		--warn: #ff9f0a;
+		--warn-dim: rgba(255, 159, 10, 0.16);
+		--bad: #ff453a;
+		--bad-dim: rgba(255, 69, 58, 0.16);
 
-		--ring: rgba(255, 90, 53, 0.65);
-		--shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -14px rgba(0, 0, 0, 0.7);
-		--shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.45), 0 18px 40px -18px rgba(0, 0, 0, 0.8);
-
-		--tone-l: 0.72;
-		--tone-c: 0.17;
-		--tone-on: #150f08;
-		--tone-soft-l: 0.26;
-		--tone-soft-c: 0.05;
-
-		--cat-exam: #a99bea;
-		--cat-deadline: #d7b167;
-		--cat-holiday: #e3898c;
-		--cat-break: #7fc7a5;
-		--cat-event: #8ea6c9;
-		--cat-restricted: #cf9dc7;
-
-		--tint-l: 0.75;
+		--ring: rgba(10, 132, 255, 0.6);
+		--shadow: none;
+		--shadow-lift: none;
 	}
 }
 
 :root[data-theme='dark'] {
 	color-scheme: dark;
 
-	--bg: #0d0c09;
-	--bg-card: #191712;
-	--bg-hover: #25221b;
-	--bg-input: #191712;
-	--bg-sunken: #131110;
+	--bg: #000000;
+	--bg-card: #1c1c1e;
+	--bg-hover: #2c2c2e;
+	--bg-input: #1c1c1e;
+	--bg-sunken: #2c2c2e;
 
-	--text: #faf6ec;
-	--text-secondary: #c2baa9;
-	--text-muted: #968d7c;
+	--text: #f5f5f7;
+	--text-secondary: #d1d1d6;
+	--text-muted: #98989d;
 
-	--border: #37322a;
-	--border-hover: #4e473c;
-	--border-strong: #6d6455;
+	--border: #38383a;
+	--border-hover: #48484a;
+	--border-strong: #636366;
 
-	--accent: #ff5a35;
-	--accent-hover: #ff7452;
-	--accent-ink: #150c08;
-	--accent-dim: rgba(255, 90, 53, 0.2);
+	--accent: #0a84ff;
+	--accent-hover: #409cff;
+	--accent-ink: #ffffff;
+	--accent-dim: rgba(10, 132, 255, 0.18);
 
-	--ok: #5bd196;
-	--warn: #e8b155;
-	--bad: #ff8073;
-	--conflict: #ff8073;
+	--ok: #30d158;
+	--ok-dim: rgba(48, 209, 88, 0.16);
+	--warn: #ff9f0a;
+	--warn-dim: rgba(255, 159, 10, 0.16);
+	--bad: #ff453a;
+	--bad-dim: rgba(255, 69, 58, 0.16);
 
-	--ring: rgba(255, 90, 53, 0.65);
-	--shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -14px rgba(0, 0, 0, 0.7);
-	--shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.45), 0 18px 40px -18px rgba(0, 0, 0, 0.8);
-
-	--tone-l: 0.72;
-	--tone-c: 0.17;
-	--tone-on: #150f08;
-	--tone-soft-l: 0.26;
-	--tone-soft-c: 0.05;
-
-	--cat-exam: #a99bea;
-	--cat-deadline: #d7b167;
-	--cat-holiday: #e3898c;
-	--cat-break: #7fc7a5;
-	--cat-event: #8ea6c9;
-	--cat-restricted: #cf9dc7;
-
-	--tint-l: 0.75;
+	--ring: rgba(10, 132, 255, 0.6);
+	--shadow: none;
+	--shadow-lift: none;
 }
 
 * {
@@ -184,6 +132,7 @@
 
 html {
 	font-size: 15px;
+	-webkit-text-size-adjust: 100%;
 	-webkit-font-smoothing: antialiased;
 }
 
@@ -191,11 +140,11 @@ body {
 	font-family: var(--font);
 	background: var(--bg);
 	color: var(--text);
-	line-height: 1.5;
+	line-height: 1.47;
+	font-variant-numeric: tabular-nums;
 	min-height: 100vh;
 }
 
-/* One focus ring for the whole site instead of per-page guesswork */
 :focus-visible {
 	outline: 2px solid var(--ring);
 	outline-offset: 2px;
@@ -217,69 +166,45 @@ body {
 	color: var(--text);
 }
 
-/* Typography */
 h1,
 h2 {
 	font-family: var(--font-display);
-	font-weight: 700;
-	letter-spacing: -0.03em;
-	line-height: 1.05;
-}
-
-h3 {
-	font-weight: 500;
-	font-size: 0.95rem;
-	letter-spacing: -0.01em;
+	font-weight: 600;
+	letter-spacing: -0.022em;
+	line-height: 1.1;
 }
 
 h1 {
-	font-size: 1.75rem;
+	font-size: 2.25rem;
 }
 
 h2 {
 	font-size: 1.3rem;
 }
 
-/* A thing that owns a hue sets --h; these three read it. */
-/* A thing that owns a hue sets --h; these read it. */
-.tone-solid {
-	background: oklch(var(--tone-l) var(--tone-c) var(--h));
-	color: var(--tone-on);
-}
-
-.tone-soft {
-	background: oklch(var(--tone-soft-l) var(--tone-soft-c) var(--h));
-}
-
-.tone-ink {
-	color: oklch(var(--tone-l) var(--tone-c) var(--h));
-}
-
-/* Micro-label: the mono uppercase caption used all over the app */
-.label {
-	font-family: var(--font-mono);
-	font-size: 0.65rem;
-	letter-spacing: 0.16em;
-	text-transform: uppercase;
-	color: var(--text-muted);
-}
-
 /* Input */
 .input {
 	width: 100%;
-	padding: 0.75rem 1rem;
+	padding: 0.7rem 0.9rem;
 	background: var(--bg-input);
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
 	color: var(--text);
-	font-size: 0.9rem;
-	transition: border-color 0.15s;
+	font: inherit;
+	font-size: var(--text-md);
+	transition:
+		border-color 0.15s,
+		box-shadow 0.15s;
+}
+
+.input:hover {
+	border-color: var(--border-hover);
 }
 
 .input:focus {
 	outline: none;
 	border-color: var(--accent);
-	box-shadow: 0 0 0 3px var(--accent-dim);
+	box-shadow: 0 0 0 4px var(--accent-dim);
 }
 
 .input::placeholder {
@@ -287,12 +212,11 @@ h2 {
 }
 
 @media screen and (max-width: 768px) {
-
-	input[type="text"],
-	input[type="number"],
-	input[type="email"],
-	input[type="password"],
-	input[type="search"],
+	input[type='text'],
+	input[type='number'],
+	input[type='email'],
+	input[type='password'],
+	input[type='search'],
 	select,
 	textarea {
 		font-size: 16px !important;
@@ -305,15 +229,22 @@ h2 {
 	align-items: center;
 	justify-content: center;
 	gap: 0.5rem;
-	padding: 0.6rem 1rem;
-	font-size: 0.85rem;
+	padding: 0 0.9rem;
+	font: inherit;
+	font-size: var(--text-md);
 	font-weight: 500;
-	border-radius: var(--radius);
+	border-radius: 999px;
 	border: 1px solid var(--border);
-	background: var(--bg);
+	background: var(--bg-card);
 	color: var(--text);
 	cursor: pointer;
-	transition: all 0.15s;
+	box-shadow: var(--shadow);
+	transition:
+		background 0.15s,
+		border-color 0.15s,
+		color 0.15s,
+		transform 0.1s;
+	min-height: var(--h-md);
 }
 
 .btn:hover {
@@ -321,12 +252,8 @@ h2 {
 	border-color: var(--border-hover);
 }
 
-.btn:focus-visible {
-	border-color: var(--accent);
-}
-
 .btn:active {
-	transform: translateY(1px);
+	transform: scale(0.97);
 }
 
 .btn:disabled {
@@ -334,46 +261,15 @@ h2 {
 	cursor: not-allowed;
 }
 
-.btn-primary {
-	background: var(--accent);
-	color: var(--accent-ink);
-	border-color: var(--accent);
-	font-weight: 600;
-}
-
-.btn-primary:hover {
-	background: var(--accent-hover);
-	border-color: var(--accent-hover);
-}
-
 .btn-sm {
-	padding: 0.35rem 0.6rem;
-	font-size: 0.75rem;
+	padding: 0 0.7rem;
+	font-size: var(--text-sm);
+	min-height: var(--h-sm);
 }
 
-.btn-danger {
-	color: var(--text-secondary);
-}
-
-.btn-danger:hover {
-	color: var(--text);
-}
-
-/* Badge */
-.badge {
-	display: inline-flex;
-	padding: 0.15rem 0.5rem;
-	font-size: 0.7rem;
-	font-weight: 500;
-	border-radius: var(--radius-sm);
-	background: var(--bg-sunken);
-	color: var(--text-secondary);
-}
-
-/* Scrollbar */
 ::-webkit-scrollbar {
-	width: 6px;
-	height: 6px;
+	width: 8px;
+	height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -382,22 +278,9 @@ h2 {
 
 ::-webkit-scrollbar-thumb {
 	background: var(--border-hover);
-	border-radius: 3px;
+	border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
 	background: var(--text-muted);
-}
-
-/* Utilities */
-.text-muted {
-	color: var(--text-muted);
-}
-
-.text-secondary {
-	color: var(--text-secondary);
-}
-
-.font-mono {
-	font-family: var(--font-mono);
 }

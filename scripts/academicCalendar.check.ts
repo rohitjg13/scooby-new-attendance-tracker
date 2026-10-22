@@ -3,6 +3,7 @@
 import assert from "node:assert";
 import { readdirSync, readFileSync } from "node:fs";
 import { parseAcademicCalendar, extractPdf } from "../src/lib/server/academicCalendar.ts";
+import { semesterFrom, DAY_NAMES } from "../src/lib/semester.ts";
 
 const DIR = "src/lib/data";
 const pdf = readdirSync(DIR).find((f) => /calendar.*\.pdf$/i.test(f));
@@ -35,3 +36,28 @@ assert.ok(cal.days.some((d) => d.category === "exam"), "no exam days found");
 
 console.log(`${cal.days.length} days, ${withText.length} with entries`);
 for (const d of withText) console.log(` ${d.date} ${d.weekday.slice(0, 3)} [${d.category}] ${d.text}`);
+
+// The teaching days the attendance page counts must add up, month by month, to
+// the "Teaching Days" row the calendar prints under its grid.
+const sem = semesterFrom(cal.days);
+const perMonth = new Map<string, number>();
+for (const d of sem.days) perMonth.set(d.date.slice(0, 7), (perMonth.get(d.date.slice(0, 7)) ?? 0) + 1);
+// the label appears more than once (it also heads the table); the totals are
+// the first line, top down, that has numbers beside it
+const printed =
+	items
+		.filter((i) => /^teaching days$/i.test(i.str.trim()))
+		.sort((a, b) => b.y - a.y)
+		.map((label) =>
+			items
+				.filter((i) => /^\d+$/.test(i.str.trim()) && Math.abs(i.y - label.y) < 2 && i.x > label.x)
+				.sort((a, b) => a.x - b.x)
+				.map((i) => Number(i.str))
+		)
+		.find((row) => row.length) ?? [];
+assert.ok(printed.length, 'no "Teaching Days" totals printed in the PDF');
+assert.deepEqual([...perMonth.values()], printed, "teaching days per month disagree with the printed totals");
+
+const perWeekday: Record<string, number> = {};
+for (const d of sem.days) perWeekday[DAY_NAMES[d.weekday]] = (perWeekday[DAY_NAMES[d.weekday]] ?? 0) + 1;
+console.log(`semester ${sem.start} → ${sem.end}: ${sem.days.length} teaching days`, perWeekday);

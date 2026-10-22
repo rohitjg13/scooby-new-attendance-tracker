@@ -125,6 +125,13 @@ assert.equal(backfillCount(lateMonday, [1], sem, null), 0);
 // and a component with no days picked can't have missed anything
 assert.equal(backfillCount(lateMonday, [], sem, cutoff), 0);
 
+// a CCC whose first class is after 3 Oct is a second-half course: never back-filled,
+// even with a waiver that reaches past its start
+const lateCcc = [{ raw: "12 Oct-1", date: new Date(2026, 9, 12), status: "present" as const }];
+assert.equal(backfillCount(lateCcc, [1], sem, new Date(2026, 9, 31), true), 0);
+// the same late start on a non-CCC course still back-fills
+assert.ok(backfillCount(lateCcc, [1], sem, new Date(2026, 9, 31), false) > 0);
+
 const courses = toCourses(rows, cutoff, sem, false);
 assert.deepEqual(courses.map((c) => c.name), ["CCC448", "ECE301", "ECE302"]);
 

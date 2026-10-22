@@ -15,6 +15,10 @@ import { remainingDays, WEEKDAYS, type Semester } from "./semester.ts";
 /** University-wide attendance waiver: everything up to here is credited. */
 export const FORGIVE_UNTIL = "2026-09-07";
 
+/** A CCC whose first class is after this is a second-half course: nothing before it to back-fill. */
+// ponytail: fixed date like FORGIVE_UNTIL, update each semester
+export const CCC_LATE_START = "2026-10-03";
+
 export type Status = "present" | "absent" | "leave" | "ignored";
 
 export type Session = {
@@ -128,18 +132,21 @@ export const classesLeft = (days: number[], left: Record<number, number>) =>
  * the course started when the semester did, so those sit in nobody's column.
  * They're inside the waiver window by definition of being early, so the waiver
  * credits them — and the cut-off keeps them from being invented for a course
- * that genuinely began later in the term.
+ * that genuinely began later in the term. A CCC that starts after
+ * CCC_LATE_START is a second-half course and is left as the report has it.
  */
 export function backfillCount(
 	sessions: Session[],
 	days: number[],
 	sem: Semester,
-	forgiveUntil: Date | null
+	forgiveUntil: Date | null,
+	ccc = false
 ): number {
 	if (!days.length || !forgiveUntil) return 0;
 	const first = sessions.map((s) => s.date).filter(Boolean) as Date[];
 	if (!first.length) return 0;
 	const earliest = new Date(Math.min(...first.map((d) => d.getTime()))).toLocaleDateString("en-CA");
+	if (ccc && earliest > CCC_LATE_START) return 0;
 	const until = forgiveUntil.toLocaleDateString("en-CA");
 
 	return sem.days.filter(
@@ -208,7 +215,7 @@ export function toCourses(
 			const sessions = mine.flatMap((r) => r.sessions);
 			const c = countSessions(sessions, forgiveUntil);
 			const days = weekdaysOf(sessions);
-			const early = backfill ? backfillCount(sessions, days, sem, forgiveUntil) : 0;
+			const early = backfill ? backfillCount(sessions, days, sem, forgiveUntil, code.startsWith("CCC")) : 0;
 			forgiven += c.forgiven;
 			backfilled += early;
 			components.push({

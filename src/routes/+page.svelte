@@ -256,14 +256,6 @@
 				<span class="miss">
 					No course rows in that. Copy the whole report page, not just a selection.
 				</span>
-			{:else if rows.length}
-				<span class="found">
-					{rows.length} section{rows.length === 1 ? "" : "s"} · {courses.length} course{courses.length ===
-					1
-						? ""
-						: "s"}
-					{#if forgiven}· <b>{forgiven}</b> absence{forgiven === 1 ? "" : "s"} credited{/if}
-				</span>
 			{/if}
 			{#if raw}
 				<button class="btn btn-sm" onclick={clearAll}>
@@ -746,21 +738,6 @@
 
 	.paste-foot .btn {
 		margin-left: auto;
-	}
-
-	.found {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		padding: 0.25rem 0.7rem;
-		border-radius: 999px;
-		background: var(--ok-dim);
-		color: var(--ok);
-		font-weight: 500;
-	}
-
-	.found b {
-		font-weight: 700;
 	}
 
 	.miss {

@@ -19,7 +19,7 @@
 
 	<header>
 		<h1>How to use it</h1>
-		<p class="sub">Six steps. About a minute. <a href="/guide/attendance-tracker-guide.pdf" download>Download PDF</a></p>
+		<p class="sub">Six steps. About a minute.</p>
 	</header>
 
 	<figure class="hero">
@@ -61,11 +61,6 @@
 	.sub {
 		margin-top: 0.5rem;
 		color: var(--text-secondary);
-	}
-
-	.sub a {
-		color: var(--accent);
-		text-decoration: none;
 	}
 
 	img {

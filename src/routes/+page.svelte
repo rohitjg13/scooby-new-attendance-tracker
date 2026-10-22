@@ -239,6 +239,7 @@
 			<a href="https://snulinks.snu.edu.in/" target="_blank" rel="noopener">SNU Links</a>
 			→ Student Attendance Recording → Reports → <b>Course-wise Attendance View</b>.
 			Select the whole page, copy, and paste it here. Nothing leaves your browser.
+			<a href="/guide">See how, step by step →</a>
 		</p>
 
 		<textarea

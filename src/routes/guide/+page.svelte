@@ -1,6 +1,6 @@
 <script lang="ts">
 	const steps = [
-		{ img: "step-1.jpg", text: "Open SNU Links and click Student Attendance Recording." },
+		{ img: "step-1.jpg", text: 'Open <a href="https://snulinks.snu.edu.in/" target="_blank" rel="noopener">SNU Links</a> and click Student Attendance Recording.' },
 		{ img: "step-2.jpg", text: "Reports → Course-wise Attendance View." },
 		{ img: "step-3.jpg", text: "Select the whole page (⌘A / Ctrl+A) and copy (⌘C / Ctrl+C)." },
 		{ img: "step-4.jpg", text: "Paste it into the tracker. Your courses appear." },
@@ -29,8 +29,9 @@
 	<ol class="steps">
 		{#each steps as s, i}
 			<li>
-				<p><span class="n">{i + 1}</span>{s.text}</p>
-				<img src="/guide/{s.img}" alt="Step {i + 1}: {s.text}" loading="lazy" />
+				<!-- ponytail: our own fixed strings, so {@html} is safe -->
+				<p><span class="n">{i + 1}</span><span>{@html s.text}</span></p>
+				<img src="/guide/{s.img}" alt="Step {i + 1}: {s.text.replace(/<[^>]+>/g, '')}" loading="lazy" />
 			</li>
 		{/each}
 	</ol>
@@ -93,6 +94,11 @@
 		gap: 0.65rem;
 		margin-bottom: 0.75rem;
 		font-weight: 500;
+	}
+
+	.steps p :global(a) {
+		color: var(--accent);
+		text-decoration: none;
 	}
 
 	.n {

@@ -60,10 +60,12 @@
 	let halfSem = $state<Record<string, boolean>>({});
 
 	const left = $derived(remainingDays(data.semester));
-	// a first-half CCC stops where the calendar says the first half finishes
+	// a first-half CCC stops where the calendar says the first half finishes;
+	// a second-half one has already started past that, so it runs to the end
 	const leftHalf = $derived(remainingDays(data.semester, new Date(), data.semester.half));
 	const isCcc = (id: string) => id.startsWith("CCC") && data.semester.half !== "";
-	const leftFor = (id: string) => (isCcc(id) && halfSem[id] ? leftHalf : left);
+	const leftFor = (c: ParsedCourse) =>
+		isCcc(c.id) && halfSem[c.id] && !c.secondHalf ? leftHalf : left;
 	const key = (id: string, type: ComponentType) => `${id}/${type}`;
 	const HOURS = [1, 1.5, 2, 2.5, 3];
 	const COUNTS = ["attended", "missed", "leaves", "remaining"] as const;
@@ -138,7 +140,7 @@
 						leaves: counts[`${key(c.id, t)}/leaves`] ?? base.leaves,
 						hrs: t === "PRAC" ? 1 : (hours[key(c.id, t)] ?? base.hrs),
 						remaining:
-							counts[`${key(c.id, t)}/remaining`] ?? classesLeft(days, leftFor(c.id))
+							counts[`${key(c.id, t)}/remaining`] ?? classesLeft(days, leftFor(c))
 					};
 				})
 			};
@@ -497,9 +499,9 @@
 										class:on={comp.days.includes(d)}
 										onclick={() => toggleDay(course.id, comp.type, comp.days, d)}
 										aria-pressed={comp.days.includes(d)}
-										title="{leftFor(course.id)[d]} {DAY_NAMES[d]}s left"
+										title="{leftFor(course)[d]} {DAY_NAMES[d]}s left"
 									>
-										{DAY_NAMES[d]}<span class="d-n">{leftFor(course.id)[d]}</span>
+										{DAY_NAMES[d]}<span class="d-n">{leftFor(course)[d]}</span>
 									</button>
 								{/each}
 							</div>
@@ -599,7 +601,8 @@
 			<b>Half-sem CCC</b> — tick it on a CCC that only runs the first half of the
 			semester, and its Left stops at {dmy(data.semester.half)}, when the calendar
 			says the first half finishes. Leave it unticked and the course runs to the
-			end of the semester like any other.
+			end of the semester like any other. A CCC whose report starts after 1st
+			October is a second-half course, so its Left runs to the end either way.
 		</p>
 		<p>
 			<b>Left</b> comes from the days under each component: the report's own

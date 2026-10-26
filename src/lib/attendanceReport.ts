@@ -198,6 +198,8 @@ export type ParsedCourse = {
 	backfilled: number;
 	/** first class, when it's after the waiver date: a late join, credited up to the waiver and counted again from here; "" otherwise */
 	lateStart: string;
+	/** a CCC first seen after CCC_SECOND_HALF: it runs the second half, so its Left goes to the semester's end */
+	secondHalf: boolean;
 	sections: string[];
 };
 
@@ -247,6 +249,7 @@ export function toCourses(
 			forgiven,
 			backfilled,
 			lateStart: until && first > until && !secondHalfCcc(code, first) ? first : "",
+			secondHalf: secondHalfCcc(code, first),
 			sections: rs.map((r) => r.section)
 		};
 	});

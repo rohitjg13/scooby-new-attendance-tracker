@@ -131,6 +131,11 @@ assert.equal(backfillCount(lateJoin, [2], sem, cutoff, "ECE399"), backfillCount(
 // a CCC first seen after 1 Oct is a second-half course: nothing before it at all
 const lateCcc = [{ raw: "12 Oct-1", date: new Date(2026, 9, 12), status: "present" as const }];
 assert.equal(backfillCount(lateCcc, [1], sem, cutoff, "CCC401"), 0);
+// …and it's flagged, so the Half-sem tick counts its Left to the semester's end, not the first half's
+const secondHalf = (code: string) =>
+	toCourses([{ code, section: "LECA", type: "LEC", sessions: lateCcc }], cutoff, sem)[0].secondHalf;
+assert.equal(secondHalf("CCC401"), true);
+assert.equal(secondHalf("ECE399"), false);
 
 const courses = toCourses(rows, cutoff, sem, false);
 assert.deepEqual(courses.map((c) => c.name), ["CCC448", "ECE301", "ECE302"]);

@@ -8,6 +8,8 @@ import {
 	weekdaysOf,
 	classesLeft,
 	backfillCount,
+	heldToday,
+	nextDay,
 	parseForgiveDate,
 	FORGIVE_UNTIL
 } from "../src/lib/attendanceReport.ts";
@@ -152,6 +154,12 @@ assert.equal(Math.round(stats(ece301).current! * 10) / 10, 90.9);
 const filled = toCourses(rows, cutoff, sem, true);
 assert.equal(filled[1].backfilled, 0);
 assert.equal(filled[1].components[0].attended, ece301.components[0].attended);
+
+// a class dated today is already in the report: it's not "left" too
+const now = new Date();
+assert.equal(heldToday([{ raw: "", date: new Date(now.getFullYear(), now.getMonth(), now.getDate()), status: "present" }]), true);
+assert.equal(heldToday(lateCcc, new Date(2026, 9, 13)), false);
+assert.equal(nextDay(new Date(2026, 9, 31)).toDateString(), new Date(2026, 10, 1).toDateString());
 
 // nothing to parse → nothing back
 assert.deepEqual(parseReport("just some text\nCourse Code", "2026-08-17"), []);

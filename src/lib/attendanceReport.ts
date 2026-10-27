@@ -160,6 +160,14 @@ export function firstClass(sessions: Session[]): string {
 	return dates.length ? new Date(Math.min(...dates.map((d) => d.getTime()))).toLocaleDateString("en-CA") : "";
 }
 
+/** Today's class is already in the report, so "left" starts tomorrow. */
+export const heldToday = (sessions: Session[], today = new Date()) =>
+	sessions.some((s) => s.date?.toDateString() === today.toDateString());
+
+/** The day after `today`, for counting what's left once today's class is in. */
+export const nextDay = (today = new Date()) =>
+	new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
 /** Absences on or before the waiver date are credited as attended. */
 export function countSessions(sessions: Session[], forgiveUntil: Date | null) {
 	let attended = 0;
@@ -184,6 +192,8 @@ export type ParsedComponent = Component & {
 	days: number[];
 	/** classes the calendar says were held before the report's first entry */
 	backfilled: number;
+	/** the report already has a class dated today, so today isn't in "left" */
+	heldToday: boolean;
 };
 
 // Not `Course & {…}`: intersecting the two component arrays loses `days` when
@@ -211,6 +221,7 @@ export function toCourses(
 	backfill = true
 ): ParsedCourse[] {
 	const left = remainingDays(sem);
+	const leftAfterToday = remainingDays(sem, nextDay());
 	const byCode = new Map<string, Row[]>();
 	for (const r of rows) byCode.set(r.code, [...(byCode.get(r.code) ?? []), r]);
 
@@ -225,6 +236,7 @@ export function toCourses(
 			const sessions = mine.flatMap((r) => r.sessions);
 			const c = countSessions(sessions, forgiveUntil);
 			const days = weekdaysOf(sessions);
+			const held = heldToday(sessions);
 			const early = backfill ? backfillCount(sessions, days, sem, forgiveUntil, code) : 0;
 			forgiven += c.forgiven;
 			backfilled += early;
@@ -235,7 +247,8 @@ export function toCourses(
 				leaves: c.leaves,
 				days,
 				backfilled: early,
-				remaining: classesLeft(days, left),
+				heldToday: held,
+				remaining: classesLeft(days, held ? leftAfterToday : left),
 				hrs: 1
 			});
 		}

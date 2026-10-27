@@ -4,6 +4,7 @@
 		parseReport,
 		toCourses,
 		classesLeft,
+		nextDay,
 		parseForgiveDate,
 		FORGIVE_UNTIL,
 		type ParsedCourse,
@@ -63,9 +64,14 @@
 	// a first-half CCC stops where the calendar says the first half finishes;
 	// a second-half one has already started past that, so it runs to the end
 	const leftHalf = $derived(remainingDays(data.semester, new Date(), data.semester.half));
+	// a component whose report already has today's class counts from tomorrow
+	const leftAfter = $derived(remainingDays(data.semester, nextDay()));
+	const leftHalfAfter = $derived(remainingDays(data.semester, nextDay(), data.semester.half));
 	const isCcc = (id: string) => id.startsWith("CCC") && data.semester.half !== "";
-	const leftFor = (c: ParsedCourse) =>
-		isCcc(c.id) && halfSem[c.id] && !c.secondHalf ? leftHalf : left;
+	const leftFor = (c: ParsedCourse, held = false) =>
+		isCcc(c.id) && halfSem[c.id] && !c.secondHalf
+			? held ? leftHalfAfter : leftHalf
+			: held ? leftAfter : left;
 	const key = (id: string, type: ComponentType) => `${id}/${type}`;
 	const HOURS = [1, 1.5, 2, 2.5, 3];
 	const COUNTS = ["attended", "missed", "leaves", "remaining"] as const;
@@ -129,7 +135,8 @@
 						remaining: 0,
 						hrs: 1,
 						days: [],
-						backfilled: 0
+						backfilled: 0,
+						heldToday: false
 					};
 					const days = picks[key(c.id, t)] ?? base.days;
 					return {
@@ -140,7 +147,7 @@
 						leaves: counts[`${key(c.id, t)}/leaves`] ?? base.leaves,
 						hrs: t === "PRAC" ? 1 : (hours[key(c.id, t)] ?? base.hrs),
 						remaining:
-							counts[`${key(c.id, t)}/remaining`] ?? classesLeft(days, leftFor(c))
+							counts[`${key(c.id, t)}/remaining`] ?? classesLeft(days, leftFor(c, base.heldToday))
 					};
 				})
 			};
@@ -499,9 +506,9 @@
 										class:on={comp.days.includes(d)}
 										onclick={() => toggleDay(course.id, comp.type, comp.days, d)}
 										aria-pressed={comp.days.includes(d)}
-										title="{leftFor(course)[d]} {DAY_NAMES[d]}s left"
+										title="{leftFor(course, comp.heldToday)[d]} {DAY_NAMES[d]}s left"
 									>
-										{DAY_NAMES[d]}<span class="d-n">{leftFor(course)[d]}</span>
+										{DAY_NAMES[d]}<span class="d-n">{leftFor(course, comp.heldToday)[d]}</span>
 									</button>
 								{/each}
 							</div>

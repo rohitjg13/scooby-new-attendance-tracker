@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import "../app.css";
+	import { dev } from "$app/environment";
 	let { children } = $props();
 
 	// Two states. Until you pick one, the CSS follows your system on its own —
@@ -18,6 +19,21 @@
 					: "light";
 	});
 
+	// Google Analytics, on built sites only, so local dev doesn't count as visits.
+	// GA4's enhanced measurement picks up client-side navigation on its own.
+	const ga = dev ? "" : "G-Z7P9TJVGD4";
+	onMount(() => {
+		if (!ga) return;
+		const w = window as unknown as { dataLayer: unknown[]; gtag: (...a: unknown[]) => void };
+		w.dataLayer = w.dataLayer || [];
+		w.gtag = function () {
+			// gtag.js wants the arguments object itself, not an array
+			w.dataLayer.push(arguments);
+		};
+		w.gtag("js", new Date());
+		w.gtag("config", ga);
+	});
+
 	function toggle() {
 		theme = theme === "dark" ? "light" : "dark";
 		document.documentElement.setAttribute("data-theme", theme);
@@ -26,6 +42,9 @@
 </script>
 
 <svelte:head>
+	{#if ga}
+		<script async src="https://www.googletagmanager.com/gtag/js?id={ga}"></script>
+	{/if}
 	<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
 	<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
 </svelte:head>

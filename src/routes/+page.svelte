@@ -60,13 +60,19 @@
 	/** CCC course code → runs only the first half of the semester */
 	let halfSem = $state<Record<string, boolean>>({});
 
-	const left = $derived(remainingDays(data.semester));
+	// re-read the clock on every paste, so a tab left open overnight doesn't
+	// count from yesterday (toCourses' heldToday already re-reads it per paste)
+	const today = $derived.by(() => {
+		void raw;
+		return new Date();
+	});
+	const left = $derived(remainingDays(data.semester, today));
 	// a first-half CCC stops where the calendar says the first half finishes;
 	// a second-half one has already started past that, so it runs to the end
-	const leftHalf = $derived(remainingDays(data.semester, new Date(), data.semester.half));
+	const leftHalf = $derived(remainingDays(data.semester, today, data.semester.half));
 	// a component whose report already has today's class counts from tomorrow
-	const leftAfter = $derived(remainingDays(data.semester, nextDay()));
-	const leftHalfAfter = $derived(remainingDays(data.semester, nextDay(), data.semester.half));
+	const leftAfter = $derived(remainingDays(data.semester, nextDay(today)));
+	const leftHalfAfter = $derived(remainingDays(data.semester, nextDay(today), data.semester.half));
 	const isCcc = (id: string) => id.startsWith("CCC") && data.semester.half !== "";
 	const leftFor = (c: ParsedCourse, held = false) =>
 		isCcc(c.id) && halfSem[c.id] && !c.secondHalf

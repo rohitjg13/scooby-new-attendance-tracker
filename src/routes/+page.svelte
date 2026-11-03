@@ -10,13 +10,14 @@
 		type ParsedCourse,
 		type ParsedComponent
 	} from "$lib/attendanceReport";
-	import { remainingDays, totalDays, WEEKDAYS, DAY_NAMES } from "$lib/semester";
+	import { remainingDays, totalDays, withoutDays, WEEKDAYS, DAY_NAMES } from "$lib/semester";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
 
 	const KEY = "attendance.hours";
 	const HALF_KEY = "attendance.halfSem";
+	const APPROVED_KEY = "attendance.approved";
 	const OLD_KEY = "attendance.v2";
 	const DEFAULT_TARGET = 70;
 	const PRESETS = [70, 45, 65];
@@ -59,6 +60,12 @@
 	let opened = $state<Record<string, boolean>>({});
 	/** CCC course code → runs only the first half of the semester */
 	let halfSem = $state<Record<string, boolean>>({});
+	/** ISO date → why it's approved ("SWIM exam"); a day you were officially away,
+	 *  so its classes count as neither attended nor missed. The note can be blank. */
+	let approved = $state<Record<string, string>>({});
+	const approvedDates = $derived(Object.keys(approved).sort());
+	// the calendar with approved days struck off: nothing left to attend on them
+	const sem = $derived(withoutDays(data.semester, approvedDates));
 
 	// re-read the clock on every paste, so a tab left open overnight doesn't
 	// count from yesterday (toCourses' heldToday already re-reads it per paste)
@@ -66,13 +73,13 @@
 		void raw;
 		return new Date();
 	});
-	const left = $derived(remainingDays(data.semester, today));
+	const left = $derived(remainingDays(sem, today));
 	// a first-half CCC stops where the calendar says the first half finishes;
 	// a second-half one has already started past that, so it runs to the end
-	const leftHalf = $derived(remainingDays(data.semester, today, data.semester.half));
+	const leftHalf = $derived(remainingDays(sem, today, data.semester.half));
 	// a component whose report already has today's class counts from tomorrow
-	const leftAfter = $derived(remainingDays(data.semester, nextDay(today)));
-	const leftHalfAfter = $derived(remainingDays(data.semester, nextDay(today), data.semester.half));
+	const leftAfter = $derived(remainingDays(sem, nextDay(today)));
+	const leftHalfAfter = $derived(remainingDays(sem, nextDay(today), data.semester.half));
 	const isCcc = (id: string) => id.startsWith("CCC") && data.semester.half !== "";
 	const leftFor = (c: ParsedCourse, held = false) =>
 		isCcc(c.id) && halfSem[c.id] && !c.secondHalf
@@ -92,9 +99,10 @@
 	// keystroke inside would spring it back.
 	const isOpen = (id: string, type: ComponentType) => opened[key(id, type)] ?? false;
 
-	// Only class hours and the half-semester CCC choice outlive a reload; the
-	// report and everything else stay in memory. Both go the moment the report
-	// text changes.
+	// Only class hours, the half-semester CCC choice and approved days outlive a
+	// reload; the report and everything else stay in memory. Hours and half-sem
+	// go the moment the report text changes. Approved days don't: they're about
+	// you, not the report, so a fresh paste tomorrow still needs them.
 	function load(k: string) {
 		try {
 			const v = JSON.parse(localStorage.getItem(k) ?? "null");
@@ -113,15 +121,17 @@
 		localStorage.removeItem(OLD_KEY); // older builds saved the whole page
 		hours = load(KEY) ?? {};
 		halfSem = load(HALF_KEY) ?? {};
+		approved = load(APPROVED_KEY) ?? {};
 	});
 
 	$effect(() => save(KEY, hours));
 	$effect(() => save(HALF_KEY, halfSem));
+	$effect(() => save(APPROVED_KEY, approved));
 
 	const forgiveUntil = $derived(isoOf(waiver));
 	const rows = $derived(parseReport(raw, data.semester.start));
 	const parsed = $derived(
-		toCourses(rows, parseForgiveDate(forgiveUntil), data.semester, backfill)
+		toCourses(rows, parseForgiveDate(forgiveUntil), sem, backfill, new Set(approvedDates))
 	);
 	// The report is the starting point: which components a course has, and which
 	// weekdays each meets on. Both are yours to change — a tutorial the report
@@ -229,6 +239,59 @@
 		for (const f of COUNTS) delete out[`${key(id, type)}/${f}`];
 		counts = out;
 	}
+
+	// --- approved days -------------------------------------------------------
+	const pad = (n: number) => String(n).padStart(2, "0");
+	const isoDay = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
+	/** teaching day → the weekday whose timetable runs on it */
+	const teaching = $derived(new Map(data.semester.days.map((d) => [d.date, d.weekday])));
+	// The semester's months, carried on to December so the whole term is pickable.
+	const calMonths = $derived.by(() => {
+		if (!data.semester.start) return [];
+		const [sy, sm] = data.semester.start.split("-").map(Number);
+		const [ey, em] = (data.semester.end || data.semester.start).split("-").map(Number);
+		const from = sy * 12 + sm - 1;
+		const to = Math.max(ey * 12 + em - 1, sy * 12 + 11);
+		return Array.from({ length: to - from + 1 }, (_, i) => ({
+			y: Math.floor((from + i) / 12),
+			m: (from + i) % 12
+		}));
+	});
+	/** a month's date cells, Monday first; null is a blank before the 1st */
+	function monthCells(y: number, m: number): (string | null)[] {
+		const lead = (new Date(y, m, 1).getDay() + 6) % 7;
+		const n = new Date(y, m + 1, 0).getDate();
+		return [...Array(lead).fill(null), ...Array.from({ length: n }, (_, i) => isoDay(y, m, i + 1))];
+	}
+	const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+	const shortDate = (iso: string) =>
+		new Date(iso + "T00:00:00").toLocaleDateString("en-GB", {
+			weekday: "short",
+			day: "numeric",
+			month: "short"
+		});
+
+	let calDialog = $state<HTMLDialogElement>();
+	let calAt = $state(0);
+	const todayIso = $derived(today.toLocaleDateString("en-CA"));
+
+	function openCal() {
+		// start on this month, or the one holding the latest approved day you'd be editing
+		const at = (iso: string) =>
+			calMonths.findIndex((c) => isoDay(c.y, c.m, 1).slice(0, 7) === iso.slice(0, 7));
+		const here = at(todayIso);
+		calAt = here >= 0 ? here : Math.max(0, at(approvedDates.at(-1) ?? ""));
+		calDialog?.showModal();
+	}
+
+	function toggleApproved(iso: string) {
+		if (iso in approved) {
+			const { [iso]: _, ...rest } = approved;
+			approved = rest;
+		} else approved = { ...approved, [iso]: "" };
+	}
+
+	const setNote = (iso: string, note: string) => (approved = { ...approved, [iso]: note });
 </script>
 
 <svelte:head>
@@ -323,6 +386,22 @@
 			{/if}
 		</span>
 
+		<span class="bar-sep"></span>
+
+		<span class="bar-group">
+			<span class="bar-label">Approved days</span>
+			<button
+				class="btn btn-sm"
+				class:has={approvedDates.length > 0}
+				onclick={openCal}
+				title="Days you were officially away, like a SWIM exam. Their classes count as neither attended nor missed"
+			>
+				{approvedDates.length
+					? `${approvedDates.length} day${approvedDates.length === 1 ? "" : "s"}`
+					: "+ Add"}
+			</button>
+		</span>
+
 		{#if waiver}
 			<span class="bar-sep"></span>
 			<label class="bar-group check">
@@ -354,7 +433,8 @@
 						{forgiven} absence{forgiven === 1 ? "" : "s"} credited{#if filled}, {filled} class{filled ===
 							1
 								? ""
-								: "es"} added before the report starts{/if} ·
+								: "es"} added before the report starts{/if}{#if approvedDates.length}, {approvedDates.length}
+							approved day{approvedDates.length === 1 ? "" : "s"} excused{/if} ·
 						{totalDays(left)} teaching days left of {dmy(data.semester.start)} – {dmy(
 							data.semester.end
 						)}
@@ -625,6 +705,13 @@
 			correct too — the report is only the starting point.
 		</p>
 		<p>
+			<b>Approved days</b> are for days you were officially away, like a SWIM exam
+			off campus. Pick them on the calendar and every class on that day is taken
+			out of the sum altogether: one you already had shows up under Leave whatever
+			the report marked it, and one still to come drops out of Left. They're kept
+			in this browser and stay when you paste a fresh report.
+		</p>
+		<p>
 			<b>+ TUT</b>, <b>+ PRAC</b> and <b>+ LEC</b> add a component the report
 			doesn't carry — a tutorial that isn't tracked yet, say. <b>Remove</b> takes
 			one off a course that doesn't have it. Anything the report did carry comes
@@ -655,6 +742,107 @@
 			<b>Leave</b> counts as neither attended nor missed. Saved in this browser only.
 		</p>
 	</div>
+
+	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+	<dialog
+		bind:this={calDialog}
+		class="cal"
+		aria-labelledby="cal-title"
+		onclick={(e) => e.target === calDialog && calDialog.close()}
+	>
+		<div class="cal-box">
+			<div class="cal-head">
+				<h2 id="cal-title">Approved days</h2>
+				<button class="cal-x" onclick={() => calDialog?.close()} aria-label="Close">×</button>
+			</div>
+			<p class="cal-sub">
+				Pick the days you were officially away, such as a SWIM exam off campus or any
+				other approved leave. Every class on those days counts as neither attended
+				nor missed, the same as Leave.
+			</p>
+
+			{#if calMonths.length}
+				{@const cm = calMonths[calAt]}
+				<div class="cal-nav">
+					<button
+						class="cal-arrow"
+						onclick={() => (calAt -= 1)}
+						disabled={calAt === 0}
+						aria-label="Previous month">‹</button
+					>
+					<span class="cal-month">
+						{new Date(cm.y, cm.m, 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" })}
+					</span>
+					<button
+						class="cal-arrow"
+						onclick={() => (calAt += 1)}
+						disabled={calAt === calMonths.length - 1}
+						aria-label="Next month">›</button
+					>
+				</div>
+
+				<div class="cal-grid">
+					{#each DOW as d}
+						<span class="cal-dow">{d.slice(0, 1)}</span>
+					{/each}
+					{#each monthCells(cm.y, cm.m) as iso, i (iso ?? `blank-${i}`)}
+						{#if !iso}
+							<span></span>
+						{:else}
+							{@const wd = teaching.get(iso)}
+							{@const own = new Date(iso + "T00:00:00").getDay()}
+							<button
+								class="cal-day"
+								class:on={iso in approved}
+								class:today={iso === todayIso}
+								disabled={wd === undefined && !(iso in approved)}
+								aria-pressed={iso in approved}
+								aria-label={shortDate(iso)}
+								title={wd === undefined
+									? "No classes on this day"
+									: wd !== own
+										? `${DAY_NAMES[wd]} timetable runs on this day`
+										: undefined}
+								onclick={() => toggleApproved(iso)}>{Number(iso.slice(8))}</button
+							>
+						{/if}
+					{/each}
+				</div>
+			{/if}
+
+			{#if approvedDates.length}
+				<ul class="cal-list">
+					{#each approvedDates as iso (iso)}
+						<li>
+							<span class="cal-date">{shortDate(iso)}</span>
+							<input
+								class="input cal-note"
+								type="text"
+								placeholder="e.g. SWIM exam"
+								aria-label="Note for {shortDate(iso)}"
+								value={approved[iso]}
+								oninput={(e) => setNote(iso, e.currentTarget.value)}
+							/>
+							<button
+								class="drop"
+								onclick={() => toggleApproved(iso)}
+								aria-label="Remove {shortDate(iso)}">Remove</button
+							>
+						</li>
+					{/each}
+				</ul>
+			{:else}
+				<p class="cal-empty">No approved days yet. Tap a date to add one.</p>
+			{/if}
+
+			<div class="cal-foot">
+				{#if approvedDates.length}
+					<button class="drop" onclick={() => (approved = {})}>Clear all</button>
+				{/if}
+				<button class="btn btn-sm cal-done" onclick={() => calDialog?.close()}>Done</button>
+			</div>
+		</div>
+	</dialog>
 </main>
 
 <style>
@@ -782,9 +970,16 @@
 		gap: 0.4rem;
 	}
 
-	.bar-group > label {
+	.bar-group > label,
+	.bar-label {
 		font-weight: 500;
 		color: var(--text);
+	}
+
+	.bar-group .btn.has {
+		border-color: var(--accent);
+		color: var(--accent);
+		background: var(--accent-dim);
 	}
 
 	.check {
@@ -1393,6 +1588,190 @@
 	.note b {
 		color: var(--text);
 		font-weight: 600;
+	}
+
+	/* approved days: a small calendar in a modal */
+	.cal {
+		margin: auto;
+		width: min(24rem, calc(100% - 2rem));
+		max-height: calc(100% - 2rem);
+		padding: 0;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--bg-card);
+		color: var(--text);
+		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+	}
+
+	.cal::backdrop {
+		background: rgba(0, 0, 0, 0.35);
+	}
+
+	.cal-box {
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+		padding: 1.1rem 1.15rem 1rem;
+	}
+
+	.cal-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.cal-head h2 {
+		font-size: 1.05rem;
+	}
+
+	.cal-x,
+	.cal-arrow {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--h-md);
+		height: var(--h-md);
+		border: none;
+		border-radius: 999px;
+		background: var(--bg-sunken);
+		color: var(--text-secondary);
+		font: inherit;
+		font-size: 1.15rem;
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.cal-x:hover,
+	.cal-arrow:hover:not(:disabled) {
+		background: var(--bg-hover);
+		color: var(--text);
+	}
+
+	.cal-arrow:disabled {
+		opacity: 0.35;
+		cursor: default;
+	}
+
+	.cal-sub,
+	.cal-empty {
+		font-size: var(--text-sm);
+		line-height: 1.55;
+		color: var(--text-muted);
+	}
+
+	.cal-nav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.cal-month {
+		font-size: var(--text-md);
+		font-weight: 600;
+	}
+
+	.cal-grid {
+		display: grid;
+		grid-template-columns: repeat(7, minmax(0, 1fr));
+		gap: 0.25rem;
+	}
+
+	.cal-dow {
+		padding-bottom: 0.15rem;
+		text-align: center;
+		font-size: var(--text-xs);
+		font-weight: 500;
+		color: var(--text-muted);
+	}
+
+	.cal-day {
+		aspect-ratio: 1;
+		min-height: 2.1rem;
+		border: 1px solid transparent;
+		border-radius: 999px;
+		background: none;
+		color: var(--text);
+		font: inherit;
+		font-size: var(--text-md);
+		cursor: pointer;
+		transition:
+			background 0.15s,
+			color 0.15s,
+			border-color 0.15s;
+	}
+
+	.cal-day:hover:not(:disabled) {
+		background: var(--bg-hover);
+		border-color: var(--border-hover);
+	}
+
+	/* a Sunday, a holiday, or outside the term: nothing to excuse */
+	.cal-day:disabled {
+		color: var(--text-muted);
+		opacity: 0.4;
+		cursor: default;
+	}
+
+	.cal-day.today {
+		border-color: var(--border-strong);
+		font-weight: 600;
+	}
+
+	.cal-day.on,
+	.cal-day.on:hover {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: var(--accent-ink);
+		opacity: 1;
+	}
+
+	.cal-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		max-height: 12rem;
+		overflow-y: auto;
+		list-style: none;
+		padding-top: 0.75rem;
+		border-top: 1px solid var(--border);
+	}
+
+	.cal-list li {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.cal-date {
+		flex: none;
+		width: 6.5rem;
+		font-size: var(--text-sm);
+		font-weight: 500;
+	}
+
+	.cal-note {
+		flex: 1;
+		min-width: 0;
+		height: var(--h-md);
+		padding: 0 0.6rem;
+	}
+
+	.cal-foot {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.cal-done {
+		margin-left: auto;
+		background: var(--accent);
+		border-color: var(--accent);
+		color: var(--accent-ink);
+	}
+
+	.cal-done:hover {
+		background: var(--accent-hover);
+		border-color: var(--accent-hover);
 	}
 
 	@media (max-width: 560px) {

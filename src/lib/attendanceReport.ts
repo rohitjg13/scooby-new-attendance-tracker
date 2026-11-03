@@ -168,8 +168,16 @@ export const heldToday = (sessions: Session[], today = new Date()) =>
 export const nextDay = (today = new Date()) =>
 	new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
-/** Absences on or before the waiver date are credited as attended. */
-export function countSessions(sessions: Session[], forgiveUntil: Date | null) {
+/**
+ * Absences on or before the waiver date are credited as attended. A class on
+ * an approved day (an exam held off campus, say) is excused whatever the
+ * report marked it: it lands in Leave, so it reaches neither side of the sum.
+ */
+export function countSessions(
+	sessions: Session[],
+	forgiveUntil: Date | null,
+	approved: ReadonlySet<string> = new Set()
+) {
 	let attended = 0;
 	let missed = 0;
 	let leaves = 0;
@@ -177,7 +185,7 @@ export function countSessions(sessions: Session[], forgiveUntil: Date | null) {
 
 	for (const s of sessions) {
 		if (s.status === "ignored") continue;
-		if (s.status === "leave") leaves += 1;
+		if (s.status === "leave" || (s.date && approved.has(s.date.toLocaleDateString("en-CA")))) leaves += 1;
 		else if (s.status === "present") attended += 1;
 		else if (forgiveUntil && s.date && s.date <= forgiveUntil) {
 			attended += 1;
@@ -213,12 +221,17 @@ export type ParsedCourse = {
 	sections: string[];
 };
 
-/** Rows → one card per course code, its sections folded into LEC/TUT/PRAC. */
+/**
+ * Rows → one card per course code, its sections folded into LEC/TUT/PRAC.
+ * `approved` dates excuse the report's classes on them; take them out of
+ * `sem` too (withoutDays) so they aren't counted in Left or the back-fill.
+ */
 export function toCourses(
 	rows: Row[],
 	forgiveUntil: Date | null,
 	sem: Semester,
-	backfill = true
+	backfill = true,
+	approved: ReadonlySet<string> = new Set()
 ): ParsedCourse[] {
 	const left = remainingDays(sem);
 	const leftAfterToday = remainingDays(sem, nextDay());
@@ -234,7 +247,7 @@ export function toCourses(
 			const mine = rs.filter((r) => r.type === type);
 			if (!mine.length) continue;
 			const sessions = mine.flatMap((r) => r.sessions);
-			const c = countSessions(sessions, forgiveUntil);
+			const c = countSessions(sessions, forgiveUntil, approved);
 			const days = weekdaysOf(sessions);
 			const held = heldToday(sessions);
 			const early = backfill ? backfillCount(sessions, days, sem, forgiveUntil, code) : 0;

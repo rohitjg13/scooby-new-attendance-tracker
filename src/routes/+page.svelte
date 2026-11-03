@@ -541,13 +541,10 @@
 						{#if comp.type === "PRAC"}
 							<span
 								class="cell hrs-cell"
-								title="Even if your practical runs longer than an hour, it's 1 credit and counted as 1 hour"
+								title="All practicals are 1 credit, so each counts as 1 hour even if it runs longer"
 							>
 								<span class="m-label">Hour / class</span>
-								<span class="mono fixed-hr">
-									1
-									<span class="fixed-why">1 credit = 1 hr</span>
-								</span>
+								<span class="mono fixed-hr">1</span>
 							</span>
 						{:else}
 						<label class="cell hrs-cell" class:unset={!hrsSet}>
@@ -574,6 +571,13 @@
 							{cs.current === null ? "—" : fmt(cs.current) + "%"}
 						</span>
 					</div>
+
+					{#if comp.type === "PRAC"}
+						<p class="prac-why">
+							All practicals are 1 credit, so each one is counted as 1 hour, even if it
+							runs longer.
+						</p>
+					{/if}
 
 					<details
 						class="picker"
@@ -1261,20 +1265,20 @@
 	/* matches the height of the dropdowns beside it, so the row doesn't jump */
 	.fixed-hr {
 		display: flex;
-		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		width: 100%;
 		min-height: var(--h-md);
 		font-size: var(--text-md);
-		line-height: 1.15;
 	}
 
-	/* a 3-hour lab is still one credit, so still one hour */
-	.fixed-why {
-		font-size: 0.6rem;
+	/* why a practical's hour box is fixed: a 3-hour lab is still one credit */
+	.prac-why {
+		padding-left: 3.4rem;
+		margin: -0.1rem 0 0.45rem;
+		font-size: var(--text-xs);
+		line-height: 1.45;
 		color: var(--text-muted);
-		white-space: nowrap;
 	}
 
 	.hrs-sel {
@@ -1882,7 +1886,8 @@
 		}
 
 		.picker,
-		.adds {
+		.adds,
+		.prac-why {
 			padding-left: 0;
 		}
 

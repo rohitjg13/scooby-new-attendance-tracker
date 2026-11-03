@@ -389,7 +389,10 @@
 		<span class="bar-sep"></span>
 
 		<span class="bar-group">
-			<span class="bar-label">Approved days</span>
+			<span class="bar-label">
+				Approved days
+				<span class="bar-hint">SWAYAM exam etc.</span>
+			</span>
 			<button
 				class="btn btn-sm"
 				class:has={approvedDates.length > 0}
@@ -982,6 +985,18 @@
 	.bar-label {
 		font-weight: 500;
 		color: var(--text);
+	}
+
+	.bar-label {
+		display: flex;
+		flex-direction: column;
+		line-height: 1.15;
+	}
+
+	.bar-hint {
+		font-size: var(--text-xs);
+		font-weight: 400;
+		color: var(--text-muted);
 	}
 
 	.bar-group .btn.has {

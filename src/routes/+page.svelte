@@ -87,7 +87,7 @@
 			: held ? leftAfter : left;
 	const key = (id: string, type: ComponentType) => `${id}/${type}`;
 	const HOURS = [1, 1.5, 2, 2.5, 3];
-	const COUNTS = ["attended", "missed", "leaves", "remaining"] as const;
+	const COUNTS = ["attended", "missed", "remaining"] as const;
 	type CountField = (typeof COUNTS)[number];
 	// Until you say how long a class runs, there's no honest course total to show:
 	// one hour per class is a guess, and a two-hour lecture makes it a wrong one.
@@ -160,7 +160,7 @@
 						days,
 						attended: counts[`${key(c.id, t)}/attended`] ?? base.attended,
 						missed: counts[`${key(c.id, t)}/missed`] ?? base.missed,
-						leaves: counts[`${key(c.id, t)}/leaves`] ?? base.leaves,
+						leaves: base.leaves,
 						hrs: t === "PRAC" ? 1 : (hours[key(c.id, t)] ?? base.hrs),
 						remaining:
 							counts[`${key(c.id, t)}/remaining`] ?? classesLeft(days, leftFor(c, base.heldToday))
@@ -526,13 +526,13 @@
 						</label>
 						<label class="cell">
 							<span class="m-label">Leave</span>
+							<!-- read off the report's L and your approved days, not typed in -->
 							<input
 								class="input n"
 								type="number"
-								min="0"
-								title="Menstrual or medical leave — counts as neither attended nor missed"
+								disabled
+								title="Leave from the report, plus classes on your approved days. Counts as neither attended nor missed"
 								value={comp.leaves}
-								oninput={(e) => setCount(course.id, comp.type, "leaves", +e.currentTarget.value)}
 							/>
 						</label>
 						{#if comp.type === "PRAC"}
@@ -701,8 +701,9 @@
 			<b>Left</b> comes from the days under each component: the report's own
 			dates say which weekdays it has met on, and the academic calendar says how
 			many of those are still to come. Open <b>change days</b> to add or drop one,
-			or type straight over the Left box. Attended, Missed and Leave are yours to
-			correct too — the report is only the starting point.
+			or type straight over the Left box. Attended and Missed are yours to
+			correct too — the report is only the starting point. Leave isn't typed in:
+			it's the report's own leave plus your approved days.
 		</p>
 		<p>
 			<b>Approved days</b> are for days you were officially away, like a SWAYAM exam.
@@ -758,7 +759,7 @@
 			<p class="cal-sub">
 				Pick the days you were officially away, such as a SWAYAM exam or any
 				other approved leave. Every class on those days counts as neither attended
-				nor missed, the same as Leave.
+				nor missed.
 			</p>
 
 			{#if calMonths.length}
@@ -1267,8 +1268,14 @@
 		height: var(--h-md);
 	}
 
-	.n:hover {
+	.n:hover:not(:disabled) {
 		border-color: var(--border-hover);
+	}
+
+	/* Leave comes off the report and the approved days, so it isn't an input */
+	.n:disabled {
+		color: var(--text-muted);
+		cursor: default;
 	}
 
 	/* which weekdays this component meets on — set once and then out of the

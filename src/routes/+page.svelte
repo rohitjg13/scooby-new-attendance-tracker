@@ -770,6 +770,9 @@
 				<h2 id="cal-title">Approved days</h2>
 				<button class="cal-x" onclick={() => calDialog?.close()} aria-label="Close">×</button>
 			</div>
+			<p class="cal-flag">
+				Menstrual leaves are already taken into consideration from the text you pasted.
+			</p>
 			<p class="cal-sub">
 				Pick the days you were officially away, such as a SWAYAM exam or any
 				other approved leave. Every class on those days counts as neither attended
@@ -1692,6 +1695,17 @@
 	.cal-arrow:disabled {
 		opacity: 0.35;
 		cursor: default;
+	}
+
+	/* so nobody adds a leave day twice: the report's L is already counted */
+	.cal-flag {
+		padding: 0.6rem 0.8rem;
+		border-radius: var(--radius);
+		background: var(--accent-dim);
+		color: var(--accent);
+		font-size: var(--text-sm);
+		font-weight: 500;
+		line-height: 1.5;
 	}
 
 	.cal-sub,

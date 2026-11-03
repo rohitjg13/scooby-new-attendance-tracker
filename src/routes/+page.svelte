@@ -1417,14 +1417,22 @@
 			display: none;
 		}
 
+		/* min-width: 0 so a group is sized by the row, not by its
+		   children's intrinsic widths (the date field's is ~270px at 16px) */
 		.bar-group {
 			flex: 1 0 100%;
+			min-width: 0;
+		}
+
+		.bar-group > label {
+			white-space: nowrap;
 		}
 
 		/* the field takes whatever the label and button leave */
 		.date-input {
 			flex: 1;
 			width: auto;
+			min-width: 0;
 		}
 
 		.grid-head {

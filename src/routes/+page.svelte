@@ -444,14 +444,6 @@
 		</section>
 	{/if}
 
-	{#if courses.some((c) => c.components.some((k) => k.type === "PRAC"))}
-		<p class="prac-note">
-			<b>Practicals count as 1 hour each.</b> A practical is worth 1 credit, so even if
-			your lab runs for 2 or 3 hours, each session is counted as just 1 hour towards
-			attendance. That's why its Hour / class box is fixed at 1.
-		</p>
-	{/if}
-
 	<div class="cards">
 		{#each courses as course (course.id)}
 			{@const s = stats(course, target)}
@@ -549,7 +541,10 @@
 								title="Even if your practical runs longer than an hour, it's 1 credit and counted as 1 hour"
 							>
 								<span class="m-label">Hour / class</span>
-								<span class="mono fixed-hr">1</span>
+								<span class="mono fixed-hr">
+									1
+									<span class="fixed-why">1 credit = 1 hr</span>
+								</span>
 							</span>
 						{:else}
 						<label class="cell hrs-cell" class:unset={!hrsSet}>
@@ -1251,28 +1246,20 @@
 	/* matches the height of the dropdowns beside it, so the row doesn't jump */
 	.fixed-hr {
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		width: 100%;
 		min-height: var(--h-md);
 		font-size: var(--text-md);
+		line-height: 1.15;
 	}
 
-	/* said once above the cards, not squeezed into every practical's box */
-	.prac-note {
-		margin-bottom: 1rem;
-		padding: 0.7rem 1rem;
-		border-radius: var(--radius-lg);
-		background: var(--bg-card);
-		border: 1px solid var(--border);
-		font-size: var(--text-sm);
-		line-height: 1.55;
-		color: var(--text-secondary);
-	}
-
-	.prac-note b {
-		color: var(--text);
-		font-weight: 600;
+	/* a 3-hour lab is still one credit, so still one hour */
+	.fixed-why {
+		font-size: 0.6rem;
+		color: var(--text-muted);
+		white-space: nowrap;
 	}
 
 	.hrs-sel {

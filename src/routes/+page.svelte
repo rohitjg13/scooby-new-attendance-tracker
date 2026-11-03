@@ -60,7 +60,7 @@
 	let opened = $state<Record<string, boolean>>({});
 	/** CCC course code → runs only the first half of the semester */
 	let halfSem = $state<Record<string, boolean>>({});
-	/** ISO date → why it's approved ("SWIM exam"); a day you were officially away,
+	/** ISO date → why it's approved ("SWAYAM exam"); a day you were officially away,
 	 *  so its classes count as neither attended nor missed. The note can be blank. */
 	let approved = $state<Record<string, string>>({});
 	const approvedDates = $derived(Object.keys(approved).sort());
@@ -394,7 +394,7 @@
 				class="btn btn-sm"
 				class:has={approvedDates.length > 0}
 				onclick={openCal}
-				title="Days you were officially away, like a SWIM exam. Their classes count as neither attended nor missed"
+				title="Days you were officially away, like a SWAYAM exam. Their classes count as neither attended nor missed"
 			>
 				{approvedDates.length
 					? `${approvedDates.length} day${approvedDates.length === 1 ? "" : "s"}`
@@ -705,8 +705,8 @@
 			correct too — the report is only the starting point.
 		</p>
 		<p>
-			<b>Approved days</b> are for days you were officially away, like a SWIM exam
-			off campus. Pick them on the calendar and every class on that day is taken
+			<b>Approved days</b> are for days you were officially away, like a SWAYAM exam.
+			Pick them on the calendar and every class on that day is taken
 			out of the sum altogether: one you already had shows up under Leave whatever
 			the report marked it, and one still to come drops out of Left. They're kept
 			in this browser and stay when you paste a fresh report.
@@ -756,7 +756,7 @@
 				<button class="cal-x" onclick={() => calDialog?.close()} aria-label="Close">×</button>
 			</div>
 			<p class="cal-sub">
-				Pick the days you were officially away, such as a SWIM exam off campus or any
+				Pick the days you were officially away, such as a SWAYAM exam or any
 				other approved leave. Every class on those days counts as neither attended
 				nor missed, the same as Leave.
 			</p>
@@ -818,7 +818,7 @@
 							<input
 								class="input cal-note"
 								type="text"
-								placeholder="e.g. SWIM exam"
+								placeholder="e.g. SWAYAM exam"
 								aria-label="Note for {shortDate(iso)}"
 								value={approved[iso]}
 								oninput={(e) => setNote(iso, e.currentTarget.value)}

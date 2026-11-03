@@ -170,7 +170,7 @@ export const nextDay = (today = new Date()) =>
 
 /**
  * Absences on or before the waiver date are credited as attended. A class on
- * an approved day (an exam held off campus, say) is excused whatever the
+ * an approved day (a SWAYAM exam, say) is excused whatever the
  * report marked it: it lands in Leave, so it reaches neither side of the sum.
  */
 export function countSessions(

@@ -81,6 +81,16 @@ export function semesterFrom(rows: CalendarRow[]): Semester {
 	return { start, end, half, days };
 }
 
+/**
+ * The semester with some dates struck off — approved days, on which your
+ * classes don't exist as far as attendance goes, so there's nothing left to
+ * attend on them and nothing to back-fill either.
+ */
+export const withoutDays = (sem: Semester, dates: Iterable<string>): Semester => {
+	const out = new Set(dates);
+	return out.size ? { ...sem, days: sem.days.filter((d) => !out.has(d.date)) } : sem;
+};
+
 /** Per-weekday totals for the whole semester, however much of it is left. */
 export const countBy = (days: TeachingDay[]): Record<number, number> => {
 	const out: Record<number, number> = {};

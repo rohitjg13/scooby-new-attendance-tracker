@@ -14,7 +14,7 @@ import {
 	FORGIVE_UNTIL
 } from "../src/lib/attendanceReport.ts";
 import { stats } from "../src/lib/attendance.ts";
-import { semesterFrom, type Semester } from "../src/lib/semester.ts";
+import { semesterFrom, remainingDays, withoutDays, type Semester } from "../src/lib/semester.ts";
 
 const PASTE = `Shiv Nadar (Institution of Eminence Deemed To Be University)
 Mark Attendance
@@ -160,6 +160,30 @@ const now = new Date();
 assert.equal(heldToday([{ raw: "", date: new Date(now.getFullYear(), now.getMonth(), now.getDate()), status: "present" }]), true);
 assert.equal(heldToday(lateCcc, new Date(2026, 9, 13)), false);
 assert.equal(nextDay(new Date(2026, 9, 31)).toDateString(), new Date(2026, 10, 1).toDateString());
+
+// --- approved days -------------------------------------------------------
+// an approved day takes the class off both sides: 10 Sep's A and 08 Sep's P on
+// ECE301's lecture become Leave, whatever the report marked
+const approved = new Set(["2026-09-08", "2026-09-10"]);
+const excused = countSessions(rows[1].sessions, cutoff, approved);
+assert.deepEqual([excused.attended, excused.missed, excused.leaves], [6, 0, 2]);
+// the same day as an absence the waiver covers is excused, not credited
+const early = countSessions(rows[1].sessions, cutoff, new Set(["2026-09-03"]));
+assert.deepEqual([early.attended, early.missed, early.leaves, early.forgiven], [6, 1, 1, 1]);
+
+// struck off the calendar, so a Friday that's approved isn't "left" to attend
+const fromSep = new Date(2026, 8, 14);
+const fridays = remainingDays(sem, fromSep)[5];
+assert.equal(remainingDays(withoutDays(sem, ["2026-09-18"]), fromSep)[5], fridays - 1);
+// …nor back-filled: a Monday struck off before the report starts isn't credited
+assert.equal(backfillCount(lateMonday, [1], withoutDays(sem, ["2026-08-24"]), cutoff), 2);
+// no approved days leaves the semester as it was
+assert.equal(withoutDays(sem, []), sem);
+
+const withApproved = toCourses(rows, cutoff, sem, false, approved)[1];
+assert.equal(withApproved.components[0].leaves, 2);
+// 6 + 3 attended out of 9 counted
+assert.equal(stats(withApproved).current, 100);
 
 // nothing to parse → nothing back
 assert.deepEqual(parseReport("just some text\nCourse Code", "2026-08-17"), []);
